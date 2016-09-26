@@ -1,0 +1,8 @@
+apply plugin: 'com.android.library'
+
+apply from: project.rootProject.file('base.gradle')
+
+dependencies{
+    compile 'com.android.support:support-v4:23.4.0'
+    compile 'com.android.support:recyclerview-v7:23.+'
+}

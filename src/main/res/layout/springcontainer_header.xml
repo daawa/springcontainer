@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/spring_container_header"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:visibility="invisible">
+
+    <FrameLayout
+        android:id="@+id/spring_container_header_tips"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" >
+
+        <TextView
+            android:textSize="14dp"
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="1"
+            android:gravity="center_horizontal|top"
+            android:text="@string/pull_to_refresh"
+            android:textColor="@color/text_hint"
+            android:textStyle="bold" />
+
+        <TextView
+            android:textSize="12dp"
+            android:id="@+id/updated_at"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="25dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal|bottom"
+            android:text="@string/updated_at"
+            android:textColor="@color/text_secondary" />
+    </FrameLayout>
+
+
+    <ImageView
+        android:id="@+id/arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="28dp"
+        android:contentDescription="image"
+        android:src="@drawable/spring_container_arrow" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="28dp"
+        android:visibility="gone" />
+
+
+</RelativeLayout>
