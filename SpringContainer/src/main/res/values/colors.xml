@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cell_activity_background_color">#FFD5ECE9</color>
+    <color name="light_gray">#edeef1</color>
+    <color name="light_green">#45c01a</color>
+    <color name="dark_green">#2d8f0b</color>
+    <color name="translucent_green">#1145c01a</color>
+    <color name="light_orange">#f0a554</color>
+    <color name="light_black">#404040</color>
+    <color name="dark_orange">#ff9900</color>
+
+    <color name="text_hint">#aaaaaa</color>
+    <color name="text_main">#333333</color>
+    <color name="text_secondary">#666666</color>
+    <color name="text_red">#e86063</color>
+    <color name="base_red">#e86063</color>
+    <color name="line_s">#e6e5de</color>
+</resources>
