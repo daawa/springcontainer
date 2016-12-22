@@ -32,6 +32,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.abc.viewcontainer.R;
+import com.abc.viewcontainer.verticalscrollhelper.DefaultVerticalScrollHelper;
 import com.abc.viewcontainer.verticalscrollhelper.GridViewVerticalScrollHelper;
 import com.abc.viewcontainer.verticalscrollhelper.IVerticalScrollHelper;
 import com.abc.viewcontainer.verticalscrollhelper.ListViewVerticalScrollHelper;
@@ -212,23 +213,27 @@ public class SpringContainer extends FrameLayout {
             } else {
                 super.addView(child, getChildCount() - 1, params);
                 contentViews.add(child);
+                if(childScrollHelper == null){
+                    setChildScrollHelper(new DefaultVerticalScrollHelper(child));
+                }
             }
 
         } else {
             super.addView(child, index, params);
         }
 
-        if (child instanceof RecyclerView) {
-            setChildScrollHelper(new RecyclerViewVerticalScrollHelper((RecyclerView) child));
-        } else if (child instanceof ListView) {
-            setChildScrollHelper(new ListViewVerticalScrollHelper((ListView) child));
-        } else if (child instanceof ScrollView) {
-            setChildScrollHelper(new ScrollViewVerticalScrollHelper((ScrollView) child));
-        } else if (child instanceof GridView) {
-            setChildScrollHelper(new GridViewVerticalScrollHelper((GridView) child));
-        } else if (child instanceof WebView) {
-            setChildScrollHelper(new WebViewVerticalScrollHelper((WebView) child));
-        }
+//        if (child instanceof RecyclerView) {
+//            setChildScrollHelper(new RecyclerViewVerticalScrollHelper((RecyclerView) child));
+//        } else if (child instanceof ListView) {
+//            setChildScrollHelper(new ListViewVerticalScrollHelper((ListView) child));
+//        } else if (child instanceof ScrollView) {
+//            setChildScrollHelper(new ScrollViewVerticalScrollHelper((ScrollView) child));
+//        } else if (child instanceof GridView) {
+//            setChildScrollHelper(new GridViewVerticalScrollHelper((GridView) child));
+//        } else if (child instanceof WebView) {
+//            setChildScrollHelper(new WebViewVerticalScrollHelper((WebView) child));
+//        }
+
 
     }
 
@@ -256,6 +261,10 @@ public class SpringContainer extends FrameLayout {
 
     }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event){
+        return super.dispatchTouchEvent(event);
+    }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
@@ -554,7 +563,7 @@ public class SpringContainer extends FrameLayout {
     private boolean isAbleToPull() {
         boolean ableToPull = true;
         if (childScrollHelper != null) {
-            ableToPull = !childScrollHelper.canScrollDown();
+            ableToPull = !childScrollHelper.canScrollUp();
         }
         if (footerLayoutParams != null) {
             ableToPull &= !(footerLayoutParams.height > 0);
@@ -566,7 +575,7 @@ public class SpringContainer extends FrameLayout {
     private boolean isAble2Push() {
         boolean able2Push = true;
         if (childScrollHelper != null) {
-            able2Push = !childScrollHelper.canScrollUp();
+            able2Push = !childScrollHelper.canScrollDown();
         }
 
         if (headerLayoutParams != null) {

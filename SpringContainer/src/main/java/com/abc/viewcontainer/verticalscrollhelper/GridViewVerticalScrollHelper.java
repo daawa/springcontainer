@@ -15,7 +15,7 @@ public class GridViewVerticalScrollHelper implements IVerticalScrollHelper {
     }
 
     @Override
-    public boolean canScrollUp() {
+    public boolean canScrollDown() {
 
         int count = gridView.getChildCount();
         View lastChild = count > 0 ? gridView.getChildAt(count - 1) : null;
@@ -32,7 +32,7 @@ public class GridViewVerticalScrollHelper implements IVerticalScrollHelper {
     }
 
     @Override
-    public boolean canScrollDown() {
+    public boolean canScrollUp() {
 
         View firstChild = gridView.getChildAt(0);
         if (firstChild != null) {

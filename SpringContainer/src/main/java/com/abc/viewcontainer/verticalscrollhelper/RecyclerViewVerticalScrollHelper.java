@@ -16,7 +16,7 @@ public class RecyclerViewVerticalScrollHelper implements IVerticalScrollHelper {
     }
 
     @Override
-    public boolean canScrollUp() {
+    public boolean canScrollDown() {
         LinearLayoutManager manager = (LinearLayoutManager) mV.getLayoutManager();
         if(manager == null){
             return false;
@@ -36,7 +36,7 @@ public class RecyclerViewVerticalScrollHelper implements IVerticalScrollHelper {
     }
 
     @Override
-    public boolean canScrollDown() {
+    public boolean canScrollUp() {
         LinearLayoutManager manager = (LinearLayoutManager) mV.getLayoutManager();
         if(manager == null){
             return false;

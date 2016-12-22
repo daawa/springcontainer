@@ -11,12 +11,12 @@ public class ScrollViewVerticalScrollHelper implements IVerticalScrollHelper {
         scrollView = v;
     }
     @Override
-    public boolean canScrollUp() {
+    public boolean canScrollDown() {
         return scrollView.canScrollVertically(1);
     }
 
     @Override
-    public boolean canScrollDown() {
+    public boolean canScrollUp() {
         return scrollView.canScrollVertically(-1);
     }
 }

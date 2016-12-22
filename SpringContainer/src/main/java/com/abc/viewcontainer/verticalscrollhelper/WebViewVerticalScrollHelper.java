@@ -13,12 +13,12 @@ public class WebViewVerticalScrollHelper implements IVerticalScrollHelper {
         webView = v;
     }
     @Override
-    public boolean canScrollUp() {
+    public boolean canScrollDown() {
         return webView.canScrollVertically(1);
     }
 
     @Override
-    public boolean canScrollDown() {
+    public boolean canScrollUp() {
         return webView.canScrollVertically(-1);
     }
 }

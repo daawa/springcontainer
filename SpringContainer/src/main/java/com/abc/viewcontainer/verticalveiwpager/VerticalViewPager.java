@@ -104,10 +104,10 @@ public class VerticalViewPager extends ViewPager {
             //only intercept vertical scroll event
             if (Math.abs(mDownX - ev.getX()) < Math.abs(mDownY - ev.getY())) {
                 if (ev.getY() > mDownY) {
-                    return  !mScrollHelper.canScrollDown();
+                    return  !mScrollHelper.canScrollUp();
 
                 } else {
-                    return  !mScrollHelper.canScrollUp();
+                    return  !mScrollHelper.canScrollDown();
                 }
             }
         }

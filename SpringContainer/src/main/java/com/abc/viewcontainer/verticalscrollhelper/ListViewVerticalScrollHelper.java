@@ -15,7 +15,7 @@ public class ListViewVerticalScrollHelper implements IVerticalScrollHelper {
     }
 
     @Override
-    public boolean canScrollUp() {
+    public boolean canScrollDown() {
 
         int count = listView.getChildCount();
         View lastChild = count > 0 ? listView.getChildAt(count - 1) : null;
@@ -32,7 +32,7 @@ public class ListViewVerticalScrollHelper implements IVerticalScrollHelper {
     }
 
     @Override
-    public boolean canScrollDown() {
+    public boolean canScrollUp() {
 
         View firstChild = listView.getChildAt(0);
         if (firstChild != null) {

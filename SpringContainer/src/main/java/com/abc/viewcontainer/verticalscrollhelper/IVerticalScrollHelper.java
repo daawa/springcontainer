@@ -5,7 +5,7 @@ package com.abc.viewcontainer.verticalscrollhelper;
  */
 
 public interface IVerticalScrollHelper {
-    boolean canScrollUp();
-
     boolean canScrollDown();
+
+    boolean canScrollUp();
 }
