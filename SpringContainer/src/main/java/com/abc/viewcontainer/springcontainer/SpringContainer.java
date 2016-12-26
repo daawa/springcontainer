@@ -147,7 +147,6 @@ public class SpringContainer extends FrameLayout {
     private int mInitialYDown;
     private int touchSlop;
 
-    private boolean fakeCancel;
     private View pTarget;
 
 
@@ -257,16 +256,18 @@ public class SpringContainer extends FrameLayout {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        stopHeaderFooterAnim();
+
         int action = MotionEventCompat.getActionMasked(event);
-        int actionIndex = MotionEventCompat.getActionIndex(event);
+        int pointerIndex = MotionEventCompat.getActionIndex(event);
+        float curX = MotionEventCompat.getX(event, pointerIndex) + 0.5f;
+        float curY = MotionEventCompat.getY(event, pointerIndex) + 0.5f;
 
         int distance = 0;
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
                 mScrollPointerId = MotionEventCompat.getPointerId(event, 0);
-                mInitialYDown = (int) (event.getY() + 0.5f);
-                pTarget = getTargetChild(event.getX(), event.getY());
+                mInitialYDown = (int) curY;
+                pTarget = getTargetChild(curX, curY);
                 touchDownChildScrollHelper = scrollHelperWeakHashMap.get(pTarget);
                 mAble2PullWhenTouchDown = mSpringEnabled && (isAbleToPull(touchDownChildScrollHelper) || header.getHeight() > 0);
                 mAble2PushWhenTouchDown = mSpringEnabled && (isAbleToPush(touchDownChildScrollHelper) || footer.getHeight() > 0);
@@ -275,8 +276,8 @@ public class SpringContainer extends FrameLayout {
 
 
             case MotionEventCompat.ACTION_POINTER_DOWN: {
-                mScrollPointerId = MotionEventCompat.getPointerId(event, actionIndex);
-                mInitialYDown = (int) (MotionEventCompat.getY(event, actionIndex) + 0.5f);
+                mScrollPointerId = MotionEventCompat.getPointerId(event, pointerIndex);
+                mInitialYDown = (int) curY;
                 break;
             }
 
@@ -288,12 +289,32 @@ public class SpringContainer extends FrameLayout {
 
 
             case MotionEvent.ACTION_MOVE: {
-                if(!(mAble2PullWhenTouchDown || mAble2PushWhenTouchDown)){
-                    mAble2PullWhenTouchDown = mAble2PullWhenTouchDown || isAble2PullNow(event.getX(), event.getY());
-                    mAble2PushWhenTouchDown = mAble2PushWhenTouchDown || isAble2PushNow(event.getX(), event.getY());
+                stopHeaderFooterAnim();
+                boolean interceptedPull = false;
+                boolean fakeDown = false;
 
-                    if(mAble2PullWhenTouchDown || mAble2PushWhenTouchDown){
-                        mInitialYDown = (int) (MotionEventCompat.getY(event, actionIndex) + 0.5f);
+                boolean interceptedPush = false;
+                //boolean fakeDown = false;
+
+                boolean tmpAblePull = isAble2PullNow(curX, curY);
+                if (tmpAblePull != mAble2PullWhenTouchDown) {
+                    mAble2PullWhenTouchDown = tmpAblePull;//isAble2PullNow(curX, curY);
+                    if (mAble2PullWhenTouchDown) {
+                        mInitialYDown = (int) curY;
+                        interceptedPull = true;
+                    } else {
+                        fakeDown = true;
+                    }
+                }
+
+                boolean tmpAblePush = isAble2PushNow(curX, curY);
+                if (tmpAblePush != mAble2PushWhenTouchDown) {
+                    mAble2PushWhenTouchDown = tmpAblePush;//isAble2PushNow(curX, curY);
+                    if (mAble2PushWhenTouchDown) {
+                        mInitialYDown = (int) curY;
+                        interceptedPush = true;
+                    } else {
+                        fakeDown = true;
                     }
                 }
 
@@ -302,25 +323,42 @@ public class SpringContainer extends FrameLayout {
                     if (index < 0) {
                         return false;
                     }
-                    int yMove = (int) (MotionEventCompat.getY(event, index) + 0.5f);
+                    int yMove = (int) curY;
                     distance = yMove - mInitialYDown;
+                    boolean consumed = false;
+                    boolean fakeCancel = false;
                     if (mAble2PullWhenTouchDown) {
-                        fakeCancel = updateHeaderLayout(distance);
+                        consumed = updateHeaderLayout(distance);
+                        fakeCancel = consumed && interceptedPull;
                         if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
                             updateHeaderView();
                         }
                     }
                     if (mAble2PushWhenTouchDown) {
-                        fakeCancel = updateFooterLayout(-distance);
+                        consumed = consumed || updateFooterLayout(-distance);
+                        fakeCancel = fakeCancel || (consumed && interceptedPush);
                         if (currentLoadingStatus == STATUS_DRAG_TO_LOAD || currentLoadingStatus == STATUS_RELEASE_TO_LOAD) {
                             updateFooterView();
                         }
                     }
                     mInitialYDown = yMove;
+
+                    if (fakeCancel) {
+                        MotionEvent newEv = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_CANCEL, event.getX(), event.getY(), 0);
+                        if (pTarget != null)
+                            pTarget.dispatchTouchEvent(newEv);
+                        return true;
+                    } else if (consumed) {
+                        return true;
+                    }
+                } else if (fakeDown) {
+                    MotionEvent newEv = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_DOWN, event.getX(), event.getY(), 0);
+                    if (pTarget != null)
+                        pTarget.dispatchTouchEvent(newEv);
+                    return true;
                 }
                 break;
             }
-
 
             case MotionEvent.ACTION_UP:
             default: {
@@ -338,17 +376,12 @@ public class SpringContainer extends FrameLayout {
             }
         }
 
-
-        if ( fakeCancel) {
-            fakeCancel = false;
-            MotionEvent newEv = MotionEvent.obtain(event.getDownTime(),event.getEventTime(),MotionEvent.ACTION_CANCEL,event.getX(),event.getY(),0);
-            if(pTarget != null)
-                pTarget.dispatchTouchEvent(newEv);
-            return true;
+        // may return false, ( e.g happened in header view or footer view),and Action_up event would not be received.
+        boolean sret =  super.dispatchTouchEvent(event);
+        if(!sret){
+            mInitialYDown = 0;
         }
-
-
-        return super.dispatchTouchEvent(event);
+        return sret;
     }
 
     @Override
@@ -519,7 +552,6 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     *
      * @param distance distance of movement
      * @return consumed the move or not
      */
@@ -570,7 +602,6 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     *
      * @param distance distance of movement
      * @return consumed the move or not
      */
