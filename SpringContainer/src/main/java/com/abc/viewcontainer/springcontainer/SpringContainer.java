@@ -376,12 +376,13 @@ public class SpringContainer extends FrameLayout {
             }
         }
 
-        // may return false, ( e.g happened in header view or footer view),and Action_up event would not be received.
+        // may return false, ( e.g happened in headerView or footerView, or the content view is not interested in any event),
+        // so subsequent Action_move or Action_up events would not be received.
         boolean sret =  super.dispatchTouchEvent(event);
-        if(!sret){
-            mInitialYDown = 0;
-        }
-        return sret;
+//        if(!sret){
+//            mInitialYDown = 0;
+//        }
+        return sret|| mAble2PullWhenTouchDown||mAble2PushWhenTouchDown;
     }
 
     @Override
