@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.support.v4.view.MotionEventCompat;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 //import android.util.Log;
 import android.util.Log;
@@ -22,26 +21,18 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.RotateAnimation;
-import android.webkit.WebView;
 import android.widget.FrameLayout;
-import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.abc.viewcontainer.R;
 import com.abc.viewcontainer.verticalscrollhelper.DefaultVerticalScrollHelper;
-import com.abc.viewcontainer.verticalscrollhelper.GridViewVerticalScrollHelper;
 import com.abc.viewcontainer.verticalscrollhelper.IVerticalScrollHelper;
-import com.abc.viewcontainer.verticalscrollhelper.ListViewVerticalScrollHelper;
-import com.abc.viewcontainer.verticalscrollhelper.RecyclerViewVerticalScrollHelper;
-import com.abc.viewcontainer.verticalscrollhelper.ScrollViewVerticalScrollHelper;
-import com.abc.viewcontainer.verticalscrollhelper.WebViewVerticalScrollHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.WeakHashMap;
 
 
 /**
@@ -104,12 +95,10 @@ public class SpringContainer extends FrameLayout {
     private View header;
     private ViewGroup.LayoutParams headerLayoutParams;
     private Animator hideHeader;
-
     /**
-     * header back ground, can be zoomed while pulling
+     * header background, can be zoomed while pulling
      */
-    View headerBack;
-
+    View headerBackground;
 
     private View footer;
     private ViewGroup.LayoutParams footerLayoutParams;
@@ -123,9 +112,13 @@ public class SpringContainer extends FrameLayout {
      */
     private List<View> contentViews = new ArrayList<>(3);
 
-    IVerticalScrollHelper childScrollHelper;
-    public void setChildScrollHelper(IVerticalScrollHelper childScrollHelper) {
-        this.childScrollHelper = childScrollHelper;
+    IVerticalScrollHelper touchDownChildScrollHelper;
+    private boolean mAble2PullWhenTouchDown;
+    private boolean mAble2PushWhenTouchDown;
+    WeakHashMap<View, IVerticalScrollHelper> scrollHelperWeakHashMap = new WeakHashMap<>(3);
+
+    public void addChildScrollHelper(View child, IVerticalScrollHelper childScrollHelper) {
+        this.scrollHelperWeakHashMap.put(child, childScrollHelper);
     }
 
 
@@ -153,6 +146,9 @@ public class SpringContainer extends FrameLayout {
 
     private int mInitialYDown;
     private int touchSlop;
+
+    private boolean fakeCancel;
+    private View pTarget;
 
 
     public SpringContainer(Context context) {
@@ -208,14 +204,13 @@ public class SpringContainer extends FrameLayout {
                 && child.getId() != R.id.spring_container_footer) {
 
             if (child.getId() == R.id.spring_container_header_background) {
-                headerBack = child;
+                headerBackground = child;
                 super.addView(child, 0, params);
             } else {
                 super.addView(child, getChildCount() - 1, params);
                 contentViews.add(child);
-                if(childScrollHelper == null){
-                    setChildScrollHelper(new DefaultVerticalScrollHelper(child));
-                }
+                addChildScrollHelper(child, new DefaultVerticalScrollHelper(child));
+
             }
 
         } else {
@@ -223,15 +218,15 @@ public class SpringContainer extends FrameLayout {
         }
 
 //        if (child instanceof RecyclerView) {
-//            setChildScrollHelper(new RecyclerViewVerticalScrollHelper((RecyclerView) child));
+//            addChildScrollHelper(new RecyclerViewVerticalScrollHelper((RecyclerView) child));
 //        } else if (child instanceof ListView) {
-//            setChildScrollHelper(new ListViewVerticalScrollHelper((ListView) child));
+//            addChildScrollHelper(new ListViewVerticalScrollHelper((ListView) child));
 //        } else if (child instanceof ScrollView) {
-//            setChildScrollHelper(new ScrollViewVerticalScrollHelper((ScrollView) child));
+//            addChildScrollHelper(new ScrollViewVerticalScrollHelper((ScrollView) child));
 //        } else if (child instanceof GridView) {
-//            setChildScrollHelper(new GridViewVerticalScrollHelper((GridView) child));
+//            addChildScrollHelper(new GridViewVerticalScrollHelper((GridView) child));
 //        } else if (child instanceof WebView) {
-//            setChildScrollHelper(new WebViewVerticalScrollHelper((WebView) child));
+//            addChildScrollHelper(new WebViewVerticalScrollHelper((WebView) child));
 //        }
 
 
@@ -241,7 +236,6 @@ public class SpringContainer extends FrameLayout {
     public void setSpringEnabled(boolean enable) {
         mSpringEnabled = enable;
     }
-
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -262,17 +256,109 @@ public class SpringContainer extends FrameLayout {
     }
 
     @Override
-    public boolean dispatchTouchEvent(MotionEvent event){
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        stopHeaderFooterAnim();
+        int action = MotionEventCompat.getActionMasked(event);
+        int actionIndex = MotionEventCompat.getActionIndex(event);
+
+        int distance = 0;
+        switch (action) {
+            case MotionEvent.ACTION_DOWN: {
+                mScrollPointerId = MotionEventCompat.getPointerId(event, 0);
+                mInitialYDown = (int) (event.getY() + 0.5f);
+                pTarget = getTargetChild(event.getX(), event.getY());
+                touchDownChildScrollHelper = scrollHelperWeakHashMap.get(pTarget);
+                mAble2PullWhenTouchDown = mSpringEnabled && (isAbleToPull(touchDownChildScrollHelper) || header.getHeight() > 0);
+                mAble2PushWhenTouchDown = mSpringEnabled && (isAbleToPush(touchDownChildScrollHelper) || footer.getHeight() > 0);
+                break;
+            }
+
+
+            case MotionEventCompat.ACTION_POINTER_DOWN: {
+                mScrollPointerId = MotionEventCompat.getPointerId(event, actionIndex);
+                mInitialYDown = (int) (MotionEventCompat.getY(event, actionIndex) + 0.5f);
+                break;
+            }
+
+
+            case MotionEventCompat.ACTION_POINTER_UP: {
+                onPointerUp(event);
+                break;
+            }
+
+
+            case MotionEvent.ACTION_MOVE: {
+                if(!(mAble2PullWhenTouchDown || mAble2PushWhenTouchDown)){
+                    mAble2PullWhenTouchDown = mAble2PullWhenTouchDown || isAble2PullNow(event.getX(), event.getY());
+                    mAble2PushWhenTouchDown = mAble2PushWhenTouchDown || isAble2PushNow(event.getX(), event.getY());
+
+                    if(mAble2PullWhenTouchDown || mAble2PushWhenTouchDown){
+                        mInitialYDown = (int) (MotionEventCompat.getY(event, actionIndex) + 0.5f);
+                    }
+                }
+
+                if (mAble2PullWhenTouchDown || mAble2PushWhenTouchDown) {
+                    final int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
+                    if (index < 0) {
+                        return false;
+                    }
+                    int yMove = (int) (MotionEventCompat.getY(event, index) + 0.5f);
+                    distance = yMove - mInitialYDown;
+                    if (mAble2PullWhenTouchDown) {
+                        fakeCancel = updateHeaderLayout(distance);
+                        if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
+                            updateHeaderView();
+                        }
+                    }
+                    if (mAble2PushWhenTouchDown) {
+                        fakeCancel = updateFooterLayout(-distance);
+                        if (currentLoadingStatus == STATUS_DRAG_TO_LOAD || currentLoadingStatus == STATUS_RELEASE_TO_LOAD) {
+                            updateFooterView();
+                        }
+                    }
+                    mInitialYDown = yMove;
+                }
+                break;
+            }
+
+
+            case MotionEvent.ACTION_UP:
+            default: {
+                if (mAble2PullWhenTouchDown) {
+                    hideHeader = createHideHeaderAnimaton();
+                    hideHeader.start();
+                }
+                if (mAble2PushWhenTouchDown) {
+                    hideFooter = createHideFooterAnimation();
+                    hideFooter.start();
+                }
+
+                mInitialYDown = 0;
+                break;
+            }
+        }
+
+
+        if ( fakeCancel) {
+            fakeCancel = false;
+            MotionEvent newEv = MotionEvent.obtain(event.getDownTime(),event.getEventTime(),MotionEvent.ACTION_CANCEL,event.getX(),event.getY(),0);
+            if(pTarget != null)
+                pTarget.dispatchTouchEvent(newEv);
+            return true;
+        }
+
+
         return super.dispatchTouchEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
+        /*
         final int action = MotionEventCompat.getActionMasked(event);
         final int actionIndex = MotionEventCompat.getActionIndex(event);
 
         boolean able2pull = mSpringEnabled && (isAbleToPull() || header.getHeight() > 0);
-        boolean able2push = mSpringEnabled && (isAble2Push() || footer.getHeight() > 0);
+        boolean able2push = mSpringEnabled && (isAbleToPush() || footer.getHeight() > 0);
         if (able2pull || able2push) {
             int distance = 0;
             switch (action) {
@@ -332,6 +418,7 @@ public class SpringContainer extends FrameLayout {
             }
 
         }
+        */
 
         return super.onInterceptTouchEvent(event);
     }
@@ -341,98 +428,82 @@ public class SpringContainer extends FrameLayout {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
+        /*
         stopHeaderFooterAnim();
         boolean ret = false;
 
         final int action = MotionEventCompat.getActionMasked(event);
         final int actionIndex = MotionEventCompat.getActionIndex(event);
 
-        boolean able2pull = mSpringEnabled && (isAbleToPull() || header.getHeight() > 0);
-        boolean able2push = mSpringEnabled && (isAble2Push() || footer.getHeight() > 0);
+//        boolean able2pull = mSpringEnabled  && (mAble2PullWhenTouchDown || (isAble2PullNow(event.getX(),event.getY()) || header.getHeight() > 0));
+//        boolean able2push = mSpringEnabled && (mAble2PushWhenTouchDown ||isAble2PushNow(event.getX(),event.getY()) || footer.getHeight() > 0);
 
-        if (able2pull || able2push) {
-            int distance = 0;
-            switch (action) {
-                case MotionEvent.ACTION_DOWN: {
-                    mScrollPointerId = MotionEventCompat.getPointerId(event, 0);
-                    mInitialYDown = (int) (event.getY() + 0.5f);
+        //if (able2pull || able2push) {
+        int distance = 0;
+        switch (action) {
+            case MotionEvent.ACTION_MOVE: {
+                final int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
+                if (index < 0) {
+                    return false;
                 }
-                return true;
-
-                case MotionEvent.ACTION_POINTER_DOWN: {
-                    mScrollPointerId = MotionEventCompat.getPointerId(event, actionIndex);
-                    mInitialYDown = (int) (MotionEventCompat.getY(event, actionIndex) + 0.5f);
+                int yMove = (int) (MotionEventCompat.getY(event, index) + 0.5f);
+                distance = yMove - mInitialYDown;
+                if (mAble2PullWhenTouchDown) {
+                    updateHeaderLayout(distance);
                 }
-                break;
-
-                case MotionEvent.ACTION_MOVE: {
-                    final int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
-                    if (index < 0) {
-                        Log.e(TAG, "Error processing SpringContainer; pointer index for id " +
-                                mScrollPointerId + " not found. Did any MotionEvents get skipped?");
-                        return false;
-                    }
-                    int yMove = (int) (MotionEventCompat.getY(event, index) + 0.5f);
-                    distance = yMove - mInitialYDown;
-                    if (able2pull) {
-                        updateHeaderLayout(distance);
-                    }
-                    if (able2push) {
-                        updateFooterLayout(-distance);
-                    }
-                    mInitialYDown = yMove;
+                if (mAble2PushWhenTouchDown) {
+                    updateFooterLayout(-distance);
                 }
-                break;
-
-                case MotionEventCompat.ACTION_POINTER_UP: {
-                    onPointerUp(event);
-                }
-                break;
-
-                case MotionEvent.ACTION_UP:
-                default: {
-                    if (able2pull) {
-                        hideHeader = createHideHeaderAnimaton();
-                        hideHeader.start();
-                    }
-                    if (able2push) {
-                        hideFooter = createHideFooterAnimation();
-                        hideFooter.start();
-                    }
-
-                    mInitialYDown = 0;
-                }
+                mInitialYDown = yMove;
                 break;
             }
 
-            if (able2pull) {
-                //更新下拉头中的信息
-                if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
-                    updateHeaderView();
-                    lastRefreshingStatus = currentRefreshingStatus;
-                    // 当前正处于下拉或释放状态，通过返回true屏蔽掉 content view 的滚动事件
-                    if (distance < 0) {
-                        ret = true;
-                    }
-                }
-            }
 
-            if (able2push) {
-                //TODO: update footer
-                if (currentLoadingStatus == STATUS_DRAG_TO_LOAD || currentLoadingStatus == STATUS_RELEASE_TO_LOAD) {
-                    updateFooterView();
-                    lastLoadingStatus = currentLoadingStatus;
-                    if (distance > 0) {
-                        ret = true;
-                    }
+            case MotionEvent.ACTION_UP:
+            default: {
+                if (mAble2PullWhenTouchDown) {
+                    hideHeader = createHideHeaderAnimaton();
+                    hideHeader.start();
                 }
-            }
+                if (mAble2PushWhenTouchDown) {
+                    hideFooter = createHideFooterAnimation();
+                    hideFooter.start();
+                }
 
+                mInitialYDown = 0;
+            }
+            break;
         }
+
+        if (mAble2PullWhenTouchDown) {
+            //update header view
+            if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
+                updateHeaderView();
+                lastRefreshingStatus = currentRefreshingStatus;
+                // 当前正处于下拉或释放状态，通过返回true屏蔽掉 content view 的滚动事件
+                if (distance < 0) {
+                    ret = true;
+                }
+            }
+        }
+
+        if (mAble2PushWhenTouchDown) {
+            if (currentLoadingStatus == STATUS_DRAG_TO_LOAD || currentLoadingStatus == STATUS_RELEASE_TO_LOAD) {
+                updateFooterView();
+                lastLoadingStatus = currentLoadingStatus;
+                if (distance > 0) {
+                    ret = true;
+                }
+            }
+        }
+
+        //}
 
         if (ret) {
             return true;
-        }
+        } else {
+            return false;
+        } */
 
         return super.onTouchEvent(event);
     }
@@ -447,21 +518,26 @@ public class SpringContainer extends FrameLayout {
         }
     }
 
-    private void updateHeaderLayout(int distance) {
+    /**
+     *
+     * @param distance distance of movement
+     * @return consumed the move or not
+     */
+    private boolean updateHeaderLayout(int distance) {
         // 如果手指是上滑状态，并且下拉刷新view是完全隐藏的，就屏蔽下拉事件
         if (distance <= 0 && headerLayoutParams.height <= 0) {
-            return;
+            return false;
         }
         headerLayoutParams.height += (distance * 4 / 5);
         if (headerLayoutParams.height < 0)
             headerLayoutParams.height = 0;
 
 
-        if (headerBack != null) {
-            headerBack.setPivotY(0);
-            headerBack.setPivotX(headerBack.getHeight() / 2);
+        if (headerBackground != null) {
+            headerBackground.setPivotY(0);
+            headerBackground.setPivotX(headerBackground.getHeight() / 2);
 
-            float scale = headerBack.getScaleY();
+            float scale = headerBackground.getScaleY();
 //            if (headerLayoutParams.height > HeightThreshold) {
             scale += distance / (float) HeightThreshold;
 //            } else {
@@ -472,8 +548,8 @@ public class SpringContainer extends FrameLayout {
             else if (scale < 1)
                 scale = 1;
 
-            headerBack.setScaleX(scale);
-            headerBack.setScaleY(scale);
+            headerBackground.setScaleX(scale);
+            headerBackground.setScaleY(scale);
         }
 
         header.setLayoutParams(headerLayoutParams);
@@ -489,12 +565,18 @@ public class SpringContainer extends FrameLayout {
             }
         }
 
+        return true;
 
     }
 
-    private void updateFooterLayout(int distance) {
+    /**
+     *
+     * @param distance distance of movement
+     * @return consumed the move or not
+     */
+    private boolean updateFooterLayout(int distance) {
         if (distance <= 0 && footerLayoutParams.height <= 0) {
-            return;
+            return false;
         }
         footerLayoutParams.height += (distance * 4 / 5);
         if (footerLayoutParams.height < 0)
@@ -512,8 +594,9 @@ public class SpringContainer extends FrameLayout {
                 currentLoadingStatus = STATUS_DRAG_TO_LOAD;
             }
         }
-    }
 
+        return true;
+    }
 
     public void setOnRefreshListener(String tag, Pull2RefreshListener listener) {
         //setEnablePull2Refresh(true);
@@ -560,7 +643,7 @@ public class SpringContainer extends FrameLayout {
         }
     }
 
-    private boolean isAbleToPull() {
+    private boolean isAbleToPull(IVerticalScrollHelper childScrollHelper) {
         boolean ableToPull = true;
         if (childScrollHelper != null) {
             ableToPull = !childScrollHelper.canScrollUp();
@@ -572,7 +655,16 @@ public class SpringContainer extends FrameLayout {
 
     }
 
-    private boolean isAble2Push() {
+    private boolean isAble2PullNow(float x, float y) {
+        View v = getTargetChild(x, y);
+        if (v != null) {
+            return isAbleToPull(scrollHelperWeakHashMap.get(v));
+        }
+
+        return true;
+    }
+
+    private boolean isAbleToPush(IVerticalScrollHelper childScrollHelper) {
         boolean able2Push = true;
         if (childScrollHelper != null) {
             able2Push = !childScrollHelper.canScrollDown();
@@ -585,9 +677,15 @@ public class SpringContainer extends FrameLayout {
 
     }
 
-    /**
-     * 更新下拉头中的信息。
-     */
+    private boolean isAble2PushNow(float x, float y) {
+        View v = getTargetChild(x, y);
+        if (v != null) {
+            return isAbleToPush(scrollHelperWeakHashMap.get(v));
+        }
+
+        return true;
+    }
+
     private void updateHeaderView() {
         if (lastRefreshingStatus != currentRefreshingStatus) {
             if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH) {
@@ -607,11 +705,13 @@ public class SpringContainer extends FrameLayout {
                 arrow.setVisibility(View.GONE);
             }
             refreshUpdatedAtValue();
+
+            lastRefreshingStatus = currentRefreshingStatus;
         }
     }
 
     /**
-     * 根据当前的状态来旋转箭头。
+     * rotate the arrow in header view
      */
     private void rotateArrow() {
         float pivotX = arrow.getWidth() / 2f;
@@ -632,7 +732,7 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     * 刷新下拉头中上次更新时间的文字描述。
+     * update the desc and time in header view
      */
     private void refreshUpdatedAtValue() {
         lastUpdateTime = preferences.getLong(KEY_UPDATED_AT + mId4UpdateTime, -1);
@@ -672,7 +772,6 @@ public class SpringContainer extends FrameLayout {
 
     private void updateFooterView() {
         //Log.w(TAG, "updateFooterView");
-
         if (lastLoadingStatus != currentLoadingStatus) {
             if (currentLoadingStatus == STATUS_DRAG_TO_LOAD) {
                 footerDes.setText(DRAG_TO_LOAD_TIP);
@@ -684,6 +783,8 @@ public class SpringContainer extends FrameLayout {
                 footerDes.setText(LOADING_TIP);
                 footerProgressBar.setVisibility(View.VISIBLE);
             }
+
+            lastLoadingStatus = currentLoadingStatus;
         }
 
     }
@@ -708,9 +809,9 @@ public class SpringContainer extends FrameLayout {
                         return;
                     }
 
-                    if (headerBack != null) {
-                        headerBack.setScaleX(1);
-                        headerBack.setScaleY(1);
+                    if (headerBackground != null) {
+                        headerBackground.setScaleX(1);
+                        headerBackground.setScaleY(1);
                     }
 
                     if (currentRefreshingStatus != STATUS_REFRESHING) {
@@ -732,9 +833,9 @@ public class SpringContainer extends FrameLayout {
                 public void onAnimationCancel(Animator animation) {
                     canceled = true;
 
-                    if (headerBack != null) {
-                        headerBack.setScaleX(1);
-                        headerBack.setScaleY(1);
+                    if (headerBackground != null) {
+                        headerBackground.setScaleX(1);
+                        headerBackground.setScaleY(1);
                     }
 
                 }
@@ -752,9 +853,9 @@ public class SpringContainer extends FrameLayout {
                     if (canceled) {
                         return;
                     }
-                    if (headerBack != null) {
-                        headerBack.setScaleX(1);
-                        headerBack.setScaleY(1);
+                    if (headerBackground != null) {
+                        headerBackground.setScaleX(1);
+                        headerBackground.setScaleY(1);
                     }
                 }
 
@@ -762,9 +863,9 @@ public class SpringContainer extends FrameLayout {
                 public void onAnimationCancel(Animator animation) {
                     canceled = true;
 
-                    if (headerBack != null) {
-                        headerBack.setScaleX(1);
-                        headerBack.setScaleY(1);
+                    if (headerBackground != null) {
+                        headerBackground.setScaleX(1);
+                        headerBackground.setScaleY(1);
                     }
                 }
             });
@@ -773,7 +874,6 @@ public class SpringContainer extends FrameLayout {
         return hideHeader;
 
     }
-
 
     Animator createHideFooterAnimation() {
 
@@ -876,6 +976,33 @@ public class SpringContainer extends FrameLayout {
 
     }
 
+
+    boolean pointInChildView(float x, float y, View child) {
+        x -= getScrollX();
+        y -= getScrollY();
+        return x > child.getLeft() && x < child.getRight()
+                && y > child.getTop() && y < child.getBottom();
+    }
+
+    /**
+     * Returns true if a child view can receive pointer events.
+     */
+    private static boolean canViewReceivePointerEvents(View child) {
+        return (child.getVisibility() == VISIBLE
+                || child.getAnimation() != null);
+    }
+
+
+    View getTargetChild(float x, float y) {
+        int count = getChildCount();
+        for (int i = count - 1; i >= 0; i--) {
+            View v = getChildAt(i);
+            if (pointInChildView(x, y, v) && canViewReceivePointerEvents(v))
+                return v;
+        }
+
+        return null;
+    }
 
 }
 

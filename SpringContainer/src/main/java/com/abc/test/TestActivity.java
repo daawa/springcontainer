@@ -6,7 +6,6 @@ import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.abc.deprecated.Pull2RefreshListView;
 import com.abc.viewcontainer.R;
 import com.abc.viewcontainer.springcontainer.Pull2RefreshListener;
 import com.abc.viewcontainer.springcontainer.SpringContainer;
@@ -39,7 +38,7 @@ public class TestActivity extends AppCompatActivity {
                     public void run() {
                         spring.finishRefreshing();
                     }
-                },2000);
+                },1000);
 
             }
         });
