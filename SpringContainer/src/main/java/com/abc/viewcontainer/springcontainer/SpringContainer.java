@@ -323,7 +323,7 @@ public class SpringContainer extends FrameLayout {
                     if (index < 0) {
                         return false;
                     }
-                    int yMove = (int) curY;
+                    int yMove = (int) (int) (MotionEventCompat.getY(event, index) + 0.5f);
                     distance = yMove - mInitialYDown;
                     boolean consumed = false;
                     boolean fakeCancel = false;
