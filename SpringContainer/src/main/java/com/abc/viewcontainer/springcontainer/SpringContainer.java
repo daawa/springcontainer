@@ -261,6 +261,7 @@ public class SpringContainer extends FrameLayout {
         int pointerIndex = MotionEventCompat.getActionIndex(event);
         float curX = MotionEventCompat.getX(event, pointerIndex) + 0.5f;
         float curY = MotionEventCompat.getY(event, pointerIndex) + 0.5f;
+        //logAction(action,pointerIndex,curX,curY);
 
         int distance = 0;
         switch (action) {
@@ -292,9 +293,16 @@ public class SpringContainer extends FrameLayout {
                 stopHeaderFooterAnim();
                 boolean interceptedPull = false;
                 boolean fakeDown = false;
-
                 boolean interceptedPush = false;
                 //boolean fakeDown = false;
+
+                final int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
+                if (index < 0) {
+                    return false;
+                }
+                int yMove = (int) (int) (MotionEventCompat.getY(event, index) + 0.5f);
+                distance = yMove - mInitialYDown;
+                mInitialYDown = yMove;
 
                 boolean tmpAblePull = isAble2PullNow(curX, curY);
                 if (tmpAblePull != mAble2PullWhenTouchDown) {
@@ -319,12 +327,7 @@ public class SpringContainer extends FrameLayout {
                 }
 
                 if (mAble2PullWhenTouchDown || mAble2PushWhenTouchDown) {
-                    final int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
-                    if (index < 0) {
-                        return false;
-                    }
-                    int yMove = (int) (int) (MotionEventCompat.getY(event, index) + 0.5f);
-                    distance = yMove - mInitialYDown;
+
                     boolean consumed = false;
                     boolean fakeCancel = false;
                     if (mAble2PullWhenTouchDown) {
@@ -341,20 +344,20 @@ public class SpringContainer extends FrameLayout {
                             updateFooterView();
                         }
                     }
-                    mInitialYDown = yMove;
 
                     if (fakeCancel) {
-                        MotionEvent newEv = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_CANCEL, event.getX(), event.getY(), 0);
+                        MotionEvent cancelEvent = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_CANCEL, event.getX(), event.getY(), 0);
                         if (pTarget != null)
-                            pTarget.dispatchTouchEvent(newEv);
+                            pTarget.dispatchTouchEvent(cancelEvent);
                         return true;
                     } else if (consumed) {
                         return true;
                     }
                 } else if (fakeDown) {
-                    MotionEvent newEv = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_DOWN, event.getX(), event.getY(), 0);
-                    if (pTarget != null)
-                        pTarget.dispatchTouchEvent(newEv);
+                    MotionEvent downEvent = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_DOWN, event.getX(), event.getY(), 0);
+//                    if (pTarget != null)
+//                        pTarget.dispatchTouchEvent(newEv);
+                    super.dispatchTouchEvent(downEvent);
                     return true;
                 }
                 break;
@@ -688,7 +691,13 @@ public class SpringContainer extends FrameLayout {
     }
 
     private boolean isAble2PullNow(float x, float y) {
-        View v = getTargetChild(x, y);
+        View v = null;
+        if(pTarget != null){
+            v = pTarget;
+        } else {
+            getTargetChild(x, y);
+        }
+
         if (v != null) {
             return isAbleToPull(scrollHelperWeakHashMap.get(v));
         }
@@ -710,7 +719,12 @@ public class SpringContainer extends FrameLayout {
     }
 
     private boolean isAble2PushNow(float x, float y) {
-        View v = getTargetChild(x, y);
+        View v = null;
+        if(pTarget != null){
+            v = pTarget;
+        } else {
+            getTargetChild(x, y);
+        }
         if (v != null) {
             return isAbleToPush(scrollHelperWeakHashMap.get(v));
         }
@@ -1025,7 +1039,7 @@ public class SpringContainer extends FrameLayout {
     }
 
 
-    View getTargetChild(float x, float y) {
+    protected View getTargetChild(float x, float y) {
         int count = getChildCount();
         for (int i = count - 1; i >= 0; i--) {
             View v = getChildAt(i);
@@ -1034,6 +1048,33 @@ public class SpringContainer extends FrameLayout {
         }
 
         return null;
+    }
+
+    private void logAction(int action, int pointerIndex, float x, float y){
+        switch (action){
+            case MotionEvent.ACTION_DOWN:
+                Log.w(TAG,"ACTION_DOWN");
+                break;
+//            case MotionEvent.ACTION_MOVE:
+//                Log.w(TAG,"ACTION_MOVE");
+//                break;
+            case MotionEvent.ACTION_UP:
+                Log.w(TAG,"ACTION_UP");
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                Log.w(TAG,"ACTION_CANCEL");
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                Log.w(TAG,"ACTION_POINTER_DOWN");
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                Log.w(TAG,"ACTION_POINTER_UP");
+                break;
+            case MotionEvent.ACTION_OUTSIDE:
+                Log.w(TAG,"ACTION_OUTSIDE");
+                break;
+        }
+        Log.w(TAG, "pointerIndex: " + pointerIndex + "  x:"+x + " y:" + y);
     }
 
 }
