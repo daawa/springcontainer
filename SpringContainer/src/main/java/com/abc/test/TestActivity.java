@@ -8,6 +8,7 @@ import android.widget.ListView;
 
 import com.abc.viewcontainer.R;
 import com.abc.viewcontainer.springcontainer.Pull2RefreshListener;
+import com.abc.viewcontainer.springcontainer.SampleHeaderView;
 import com.abc.viewcontainer.springcontainer.SpringContainer;
 
 public class TestActivity extends AppCompatActivity {
@@ -25,7 +26,8 @@ public class TestActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.list_view);
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(adapter);
-        spring.setOnRefreshListener("tag", new Pull2RefreshListener() {
+        spring.setHeaderView(new SampleHeaderView(this));
+        spring.setOnRefreshListener(new Pull2RefreshListener() {
             @Override
             public void onRefresh(SpringContainer v) {
 //                try {

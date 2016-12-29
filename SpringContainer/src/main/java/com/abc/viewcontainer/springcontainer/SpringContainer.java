@@ -41,12 +41,7 @@ import java.util.WeakHashMap;
 public class SpringContainer extends FrameLayout {
 
     private static String TAG = SpringContainer.class.getSimpleName();
-    private static final String PREFERENCE_NAME = "com.abc.spring.container";
-    private static final String KEY_UPDATED_AT = "updated_at";
 
-    public String PULL_TO_RELEASE_TIP = "下拉可以刷新";
-    public String RELEASE_TO_REFRESH_TIP = "释放立即刷新";
-    public String REFRESHING_TIP = "正在刷新…";
 
     public String DRAG_TO_LOAD_TIP = "继续上拉加载更多";
     public String RELEASE_TO_LOAD_TIP = "释放加载更多";
@@ -68,39 +63,29 @@ public class SpringContainer extends FrameLayout {
     public static final int STATUS_LOAD_CANCELED = STATUS_REFRESH_CANCELED;
     //=================drag 2 load more ===============//
 
-    // time interval by milliseconds
-    public static final long ONE_MINUTE = 60 * 1000;
-    public static final long ONE_HOUR = 60 * ONE_MINUTE;
-    public static final long ONE_DAY = 24 * ONE_HOUR;
-    public static final long ONE_MONTH = 30 * ONE_DAY;
-    public static final long ONE_YEAR = 12 * ONE_MONTH;
 
     private Pull2RefreshListener mRefreshAction;
     private Drag2LoadListener mDrag2LoadAction;
 
-    /**
-     * used to store the time of last update
-     */
-    private SharedPreferences preferences;
 
     /**
-     * height threshold of header view,
+     * height threshold of headerContainer view,
      * at which the spring container will transfer to {@link #STATUS_RELEASE_TO_REFRESH } state
      */
     private int HeightThreshold = 240;
 
     /**
-     * header view
+     * headerContainer view
      */
-    private View header;
+    private ViewGroup headerContainer;
     private ViewGroup.LayoutParams headerLayoutParams;
     private Animator hideHeader;
     /**
-     * header background, can be zoomed while pulling
+     * headerContainer background, can be zoomed while pulling
      */
     View headerBackground;
 
-    private View footer;
+    private ViewGroup footerContainer;
     private ViewGroup.LayoutParams footerLayoutParams;
     private Animator hideFooter;
 
@@ -121,20 +106,6 @@ public class SpringContainer extends FrameLayout {
         this.scrollHelperWeakHashMap.put(child, childScrollHelper);
     }
 
-
-    /**
-     * progress bar while refreshing
-     */
-    private ProgressBar progressBar;
-    private ImageView arrow;
-    private TextView description;
-    private TextView updateAt;
-    private long lastUpdateTime;
-
-    /**
-     * different pages have different ids
-     */
-    private String mId4UpdateTime = "";
 
     private int currentRefreshingStatus = STATUS_REFRESH_FINISHED;
     private int currentLoadingStatus = STATUS_LOAD_FINISHED;
@@ -161,6 +132,32 @@ public class SpringContainer extends FrameLayout {
 
     public SpringContainer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        setHeaderView(new iHeaderView() {
+            @Override
+            public View onCreateSpringView(ViewGroup headerContainer) {
+                return null;
+            }
+
+            @Override
+            public View onCreateSpringViewBackground(ViewGroup headerContainer) {
+                return null;
+            }
+
+            @Override
+            public void onStateChanged(int old, int state) {
+
+            }
+
+            @Override
+            public void onHeightChanged(int cur) {
+
+            }
+
+            @Override
+            public void onRefreshFinished() {
+
+            }
+        });
 
         if (null != attrs) {
             TypedArray attributes = context.obtainStyledAttributes(attrs, R.styleable.RefreshableListView);
@@ -168,26 +165,46 @@ public class SpringContainer extends FrameLayout {
             attributes.recycle();
         }
 
-        preferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
         //preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        LayoutInflater.from(context).inflate(R.layout.springcontainer_header, this, true);
-        header = findViewById(R.id.spring_container_header);
-        headerLayoutParams = header.getLayoutParams();
+        LayoutInflater.from(context).inflate(R.layout.springcontainer_header_container, this, true);
+        headerContainer = (ViewGroup) findViewById(R.id.spring_container_header);
+        headerLayoutParams = headerContainer.getLayoutParams();
 
-        LayoutInflater.from(context).inflate(R.layout.springcontainer_footer, this, true);
-        footer = findViewById(R.id.spring_container_footer);
-        footerLayoutParams = footer.getLayoutParams();
-        footerDes = (TextView) footer.findViewById(R.id.footer_description);
-        footerProgressBar = (ProgressBar) footer.findViewById(R.id.footer_progress_bar);
+        LayoutInflater.from(context).inflate(R.layout.springcontainer_sample_footer, this, true);
+        footerContainer = (ViewGroup) findViewById(R.id.spring_container_footer);
+        footerLayoutParams = footerContainer.getLayoutParams();
+        footerDes = (TextView) footerContainer.findViewById(R.id.footer_description);
+        footerProgressBar = (ProgressBar) footerContainer.findViewById(R.id.footer_progress_bar);
 
-        progressBar = (ProgressBar) header.findViewById(R.id.progress_bar);
-        arrow = (ImageView) header.findViewById(R.id.arrow);
-        description = (TextView) header.findViewById(R.id.description);
-        updateAt = (TextView) header.findViewById(R.id.updated_at);
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
-        refreshUpdatedAtValue();
+        //refreshUpdatedAtValue();
+    }
+
+    iHeaderView headerView;
+
+//    public ViewGroup getHeaderContainer(){
+//        return  headerContainer;
+//    }
+
+    public void setHeaderView(iHeaderView hd) {
+        this.headerView = hd;
+
+        View v = headerView.onCreateSpringViewBackground(headerContainer);
+        if (v != null && v.getParent() == null) {
+            headerContainer.addView(v);
+        } else if (v != null && v.getParent() != headerContainer) {
+            throw new RuntimeException("headerView has been attatched to another parent");
+        }
+
+        v = headerView.onCreateSpringView(headerContainer);
+        if (v != null && v.getParent() == null) {
+            headerContainer.addView(v);
+        } else if (v != null && v.getParent() != headerContainer) {
+            throw new RuntimeException("headerView has been attatched to another parent");
+        }
+
     }
 
     public List<View> getContentView() {
@@ -241,11 +258,11 @@ public class SpringContainer extends FrameLayout {
         super.onLayout(changed, l, t, r, b);
 
         int contentOffset = 0;
-        if (header.getHeight() > 0) {
-            contentOffset = header.getHeight();
-        } else if (footer.getHeight() > 0) {
-            contentOffset = -footer.getHeight();
-            footer.offsetTopAndBottom(this.getHeight() - footer.getHeight());
+        if (headerContainer.getHeight() > 0) {
+            contentOffset = headerContainer.getHeight();
+        } else if (footerContainer.getHeight() > 0) {
+            contentOffset = -footerContainer.getHeight();
+            footerContainer.offsetTopAndBottom(this.getHeight() - footerContainer.getHeight());
         }
 
         if (!contentViews.isEmpty())
@@ -270,8 +287,8 @@ public class SpringContainer extends FrameLayout {
                 mInitialYDown = (int) curY;
                 pTarget = getTargetChild(curX, curY);
                 touchDownChildScrollHelper = scrollHelperWeakHashMap.get(pTarget);
-                mAble2PullWhenTouchDown = mSpringEnabled && (isAbleToPull(touchDownChildScrollHelper) || header.getHeight() > 0);
-                mAble2PushWhenTouchDown = mSpringEnabled && (isAbleToPush(touchDownChildScrollHelper) || footer.getHeight() > 0);
+                mAble2PullWhenTouchDown = mSpringEnabled && (isAbleToPull(touchDownChildScrollHelper) || headerContainer.getHeight() > 0);
+                mAble2PushWhenTouchDown = mSpringEnabled && (isAbleToPush(touchDownChildScrollHelper) || footerContainer.getHeight() > 0);
                 break;
             }
 
@@ -333,9 +350,9 @@ public class SpringContainer extends FrameLayout {
                     if (mAble2PullWhenTouchDown) {
                         consumed = updateHeaderLayout(distance);
                         fakeCancel = consumed && interceptedPull;
-                        if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
-                            updateHeaderView();
-                        }
+//                        if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
+//                            updateHeaderView();
+//                        }
                     }
                     if (mAble2PushWhenTouchDown) {
                         consumed = consumed || updateFooterLayout(-distance);
@@ -381,11 +398,11 @@ public class SpringContainer extends FrameLayout {
 
         // may return false, ( e.g happened in headerView or footerView, or the content view is not interested in any event),
         // so subsequent Action_move or Action_up events would not be received.
-        boolean sret =  super.dispatchTouchEvent(event);
+        boolean sret = super.dispatchTouchEvent(event);
 //        if(!sret){
 //            mInitialYDown = 0;
 //        }
-        return sret|| mAble2PullWhenTouchDown||mAble2PushWhenTouchDown;
+        return sret || mAble2PullWhenTouchDown || mAble2PushWhenTouchDown;
     }
 
     @Override
@@ -394,8 +411,8 @@ public class SpringContainer extends FrameLayout {
         final int action = MotionEventCompat.getActionMasked(event);
         final int actionIndex = MotionEventCompat.getActionIndex(event);
 
-        boolean able2pull = mSpringEnabled && (isAbleToPull() || header.getHeight() > 0);
-        boolean able2push = mSpringEnabled && (isAbleToPush() || footer.getHeight() > 0);
+        boolean able2pull = mSpringEnabled && (isAbleToPull() || headerContainer.getHeight() > 0);
+        boolean able2push = mSpringEnabled && (isAbleToPush() || footerContainer.getHeight() > 0);
         if (able2pull || able2push) {
             int distance = 0;
             switch (action) {
@@ -472,8 +489,8 @@ public class SpringContainer extends FrameLayout {
         final int action = MotionEventCompat.getActionMasked(event);
         final int actionIndex = MotionEventCompat.getActionIndex(event);
 
-//        boolean able2pull = mSpringEnabled  && (mAble2PullWhenTouchDown || (isAble2PullNow(event.getX(),event.getY()) || header.getHeight() > 0));
-//        boolean able2push = mSpringEnabled && (mAble2PushWhenTouchDown ||isAble2PushNow(event.getX(),event.getY()) || footer.getHeight() > 0);
+//        boolean able2pull = mSpringEnabled  && (mAble2PullWhenTouchDown || (isAble2PullNow(event.getX(),event.getY()) || headerContainer.getHeight() > 0));
+//        boolean able2push = mSpringEnabled && (mAble2PushWhenTouchDown ||isAble2PushNow(event.getX(),event.getY()) || footerContainer.getHeight() > 0);
 
         //if (able2pull || able2push) {
         int distance = 0;
@@ -513,7 +530,7 @@ public class SpringContainer extends FrameLayout {
         }
 
         if (mAble2PullWhenTouchDown) {
-            //update header view
+            //update headerContainer view
             if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
                 updateHeaderView();
                 lastRefreshingStatus = currentRefreshingStatus;
@@ -560,25 +577,25 @@ public class SpringContainer extends FrameLayout {
      * @return consumed the move or not
      */
     private boolean updateHeaderLayout(int distance) {
-        // 如果手指是上滑状态，并且下拉刷新view是完全隐藏的，就屏蔽下拉事件
+        // if wr pushing up, and the header is invisible now, do not consume the movement
         if (distance <= 0 && headerLayoutParams.height <= 0) {
             return false;
         }
-        headerLayoutParams.height += (distance * 4 / 5);
-        if (headerLayoutParams.height < 0)
+        int delta = (distance * 4 / 5);
+        headerLayoutParams.height += delta;
+        if (headerLayoutParams.height < 0) {
+            delta -= headerLayoutParams.height;
             headerLayoutParams.height = 0;
-
+        }
+        headerContainer.setLayoutParams(headerLayoutParams);
+        headerView.onHeightChanged(headerLayoutParams.height);
 
         if (headerBackground != null) {
             headerBackground.setPivotY(0);
             headerBackground.setPivotX(headerBackground.getHeight() / 2);
 
             float scale = headerBackground.getScaleY();
-//            if (headerLayoutParams.height > HeightThreshold) {
             scale += distance / (float) HeightThreshold;
-//            } else {
-//                scale += headerLayoutParams.height / (float) HeightThreshold;
-//            }
             if (scale > 2)
                 scale = 2;
             else if (scale < 1)
@@ -588,9 +605,10 @@ public class SpringContainer extends FrameLayout {
             headerBackground.setScaleY(scale);
         }
 
-        header.setLayoutParams(headerLayoutParams);
+        int old = currentRefreshingStatus;
         if (currentRefreshingStatus == STATUS_REFRESHING && headerLayoutParams.height < HeightThreshold) {
             currentRefreshingStatus = STATUS_REFRESH_CANCELED;
+            headerView.onStateChanged(old, currentRefreshingStatus);
             //TODO: cancelRefresh():
         }
         if (currentRefreshingStatus != STATUS_REFRESHING) {
@@ -599,6 +617,7 @@ public class SpringContainer extends FrameLayout {
             } else {
                 currentRefreshingStatus = STATUS_PULL_TO_REFRESH;
             }
+            headerView.onStateChanged(old, currentRefreshingStatus);
         }
 
         return true;
@@ -617,7 +636,7 @@ public class SpringContainer extends FrameLayout {
         if (footerLayoutParams.height < 0)
             footerLayoutParams.height = 0;
 
-        footer.setLayoutParams(footerLayoutParams);
+        footerContainer.setLayoutParams(footerLayoutParams);
         if (currentLoadingStatus == STATUS_LOADING && footerLayoutParams.height < HeightThreshold) {
             currentLoadingStatus = STATUS_LOAD_CANCELED;
             //TODO: cancelRefresh():
@@ -633,24 +652,23 @@ public class SpringContainer extends FrameLayout {
         return true;
     }
 
-    public void setOnRefreshListener(String tag, Pull2RefreshListener listener) {
+    public void setOnRefreshListener(Pull2RefreshListener listener) {
         //setEnablePull2Refresh(true);
         if (listener == null) {
-            header.setVisibility(View.INVISIBLE);
+            headerContainer.setVisibility(View.INVISIBLE);
         } else {
-            header.setVisibility(View.VISIBLE);
+            headerContainer.setVisibility(View.VISIBLE);
         }
 
         mRefreshAction = listener;
-        mId4UpdateTime = tag;
     }
 
     public void setOnLoadListener(Drag2LoadListener listener) {
         //setEnalbleDrag2LoadMore(true);
         if (listener == null) {
-            footer.setVisibility(View.INVISIBLE);
+            footerContainer.setVisibility(View.INVISIBLE);
         } else {
-            footer.setVisibility(View.VISIBLE);
+            footerContainer.setVisibility(View.VISIBLE);
         }
         mDrag2LoadAction = listener;
     }
@@ -660,8 +678,11 @@ public class SpringContainer extends FrameLayout {
      */
     public void finishRefreshing() {
         isRefreshing = false;
+        int old = currentRefreshingStatus;
         currentRefreshingStatus = STATUS_REFRESH_FINISHED;
-        preferences.edit().putLong(KEY_UPDATED_AT + mId4UpdateTime, System.currentTimeMillis()).commit();
+        headerView.onRefreshFinished();
+        headerView.onStateChanged(old,currentRefreshingStatus);
+        //preferences.edit().putLong(KEY_UPDATED_AT + mId4UpdateTime, System.currentTimeMillis()).commit();
         if (mInitialYDown <= 0) {
             hideHeader = createHideHeaderAnimaton();
             hideHeader.start();
@@ -692,7 +713,7 @@ public class SpringContainer extends FrameLayout {
 
     private boolean isAble2PullNow(float x, float y) {
         View v = null;
-        if(pTarget != null){
+        if (pTarget != null) {
             v = pTarget;
         } else {
             getTargetChild(x, y);
@@ -720,7 +741,7 @@ public class SpringContainer extends FrameLayout {
 
     private boolean isAble2PushNow(float x, float y) {
         View v = null;
-        if(pTarget != null){
+        if (pTarget != null) {
             v = pTarget;
         } else {
             getTargetChild(x, y);
@@ -732,89 +753,6 @@ public class SpringContainer extends FrameLayout {
         return true;
     }
 
-    private void updateHeaderView() {
-        if (lastRefreshingStatus != currentRefreshingStatus) {
-            if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH) {
-                description.setText(PULL_TO_RELEASE_TIP);
-                arrow.setVisibility(View.VISIBLE);
-                progressBar.setVisibility(View.GONE);
-                rotateArrow();
-            } else if (currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
-                description.setText(RELEASE_TO_REFRESH_TIP);
-                arrow.setVisibility(View.VISIBLE);
-                progressBar.setVisibility(View.GONE);
-                rotateArrow();
-            } else if (currentRefreshingStatus == STATUS_REFRESHING) {
-                description.setText(REFRESHING_TIP);
-                progressBar.setVisibility(View.VISIBLE);
-                arrow.clearAnimation();
-                arrow.setVisibility(View.GONE);
-            }
-            refreshUpdatedAtValue();
-
-            lastRefreshingStatus = currentRefreshingStatus;
-        }
-    }
-
-    /**
-     * rotate the arrow in header view
-     */
-    private void rotateArrow() {
-        float pivotX = arrow.getWidth() / 2f;
-        float pivotY = arrow.getHeight() / 2f;
-        float fromDegrees = 0f;
-        float toDegrees = 0f;
-        if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH) {
-            fromDegrees = 180f;
-            toDegrees = 360f;
-        } else if (currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
-            fromDegrees = 0f;
-            toDegrees = 180f;
-        }
-        RotateAnimation animation = new RotateAnimation(fromDegrees, toDegrees, pivotX, pivotY);
-        animation.setDuration(200);
-        animation.setFillAfter(true);
-        arrow.startAnimation(animation);
-    }
-
-    /**
-     * update the desc and time in header view
-     */
-    private void refreshUpdatedAtValue() {
-        lastUpdateTime = preferences.getLong(KEY_UPDATED_AT + mId4UpdateTime, -1);
-        long currentTime = System.currentTimeMillis();
-        long timePassed = currentTime - lastUpdateTime;
-        long timeIntoFormat;
-        String updateAtValue;
-        if (lastUpdateTime == -1) {
-            updateAtValue = getResources().getString(R.string.not_updated_yet);
-        } else if (timePassed < 0) {
-            updateAtValue = getResources().getString(R.string.time_error);
-        } else if (timePassed < ONE_MINUTE) {
-            updateAtValue = getResources().getString(R.string.updated_just_now);
-        } else if (timePassed < ONE_HOUR) {
-            timeIntoFormat = timePassed / ONE_MINUTE;
-            String value = timeIntoFormat + "分钟";
-            updateAtValue = String.format(getResources().getString(R.string.updated_at), value);
-        } else if (timePassed < ONE_DAY) {
-            timeIntoFormat = timePassed / ONE_HOUR;
-            String value = timeIntoFormat + "小时";
-            updateAtValue = String.format(getResources().getString(R.string.updated_at), value);
-        } else if (timePassed < ONE_MONTH) {
-            timeIntoFormat = timePassed / ONE_DAY;
-            String value = timeIntoFormat + "天";
-            updateAtValue = String.format(getResources().getString(R.string.updated_at), value);
-        } else if (timePassed < ONE_YEAR) {
-            timeIntoFormat = timePassed / ONE_MONTH;
-            String value = timeIntoFormat + "个月";
-            updateAtValue = String.format(getResources().getString(R.string.updated_at), value);
-        } else {
-            timeIntoFormat = timePassed / ONE_YEAR;
-            String value = timeIntoFormat + "年";
-            updateAtValue = String.format(getResources().getString(R.string.updated_at), value);
-        }
-        updateAt.setText(updateAtValue);
-    }
 
     private void updateFooterView() {
         //Log.w(TAG, "updateFooterView");
@@ -835,7 +773,7 @@ public class SpringContainer extends FrameLayout {
 
     }
 
-    Animator createHideHeaderAnimaton() {
+    protected Animator createHideHeaderAnimaton() {
 
         if (hideHeader != null) {
             hideHeader.cancel();
@@ -844,7 +782,7 @@ public class SpringContainer extends FrameLayout {
 
         if (headerLayoutParams.height > HeightThreshold && mRefreshAction != null) {
 
-            hideHeader = createHeightAnimation(header, headerLayoutParams.height, HeightThreshold);
+            hideHeader = createHeightAnimation(headerContainer, headerLayoutParams.height, HeightThreshold, true);
             hideHeader.addListener(new AnimatorListenerAdapter() {
                 boolean canceled = false;
 
@@ -861,8 +799,9 @@ public class SpringContainer extends FrameLayout {
                     }
 
                     if (currentRefreshingStatus != STATUS_REFRESHING) {
+                        int old = currentRefreshingStatus;
                         currentRefreshingStatus = STATUS_REFRESHING;
-                        updateHeaderView();
+                        headerView.onStateChanged(old, currentRefreshingStatus);
                         if (mRefreshAction != null) {
                             if (!isRefreshing) {
                                 isRefreshing = true;
@@ -889,7 +828,7 @@ public class SpringContainer extends FrameLayout {
             });
         } else {
 
-            hideHeader = createHeightAnimation(header, headerLayoutParams.height, 0);
+            hideHeader = createHeightAnimation(headerContainer, headerLayoutParams.height, 0, true);
             hideHeader.addListener(new AnimatorListenerAdapter() {
                 boolean canceled = false;
 
@@ -921,7 +860,7 @@ public class SpringContainer extends FrameLayout {
 
     }
 
-    Animator createHideFooterAnimation() {
+    protected Animator createHideFooterAnimation() {
 
         if (hideFooter != null) {
             hideFooter.cancel();
@@ -930,7 +869,7 @@ public class SpringContainer extends FrameLayout {
 
         if (footerLayoutParams.height > HeightThreshold && mDrag2LoadAction != null) {
 
-            hideFooter = createHeightAnimation(footer, footerLayoutParams.height, HeightThreshold);
+            hideFooter = createHeightAnimation(footerContainer, footerLayoutParams.height, HeightThreshold, false);
             hideFooter.addListener(new AnimatorListenerAdapter() {
                 boolean canceled;
 
@@ -964,7 +903,7 @@ public class SpringContainer extends FrameLayout {
             });
         } else {
 
-            hideFooter = createHeightAnimation(footer, footerLayoutParams.height, 0);
+            hideFooter = createHeightAnimation(footerContainer, footerLayoutParams.height, 0, false);
 
         }
 
@@ -972,7 +911,7 @@ public class SpringContainer extends FrameLayout {
 
     }
 
-    Animator createHeightAnimation(View view, int from, int to) {
+    protected Animator createHeightAnimation(View view, int from, int to, boolean header) {
         ValueAnimator animation = ValueAnimator.ofInt(from, to);
         int abs = Math.abs(from - to);
 
@@ -981,7 +920,7 @@ public class SpringContainer extends FrameLayout {
 
         animation.setDuration(duration);
 
-        animation.addUpdateListener(new HeightUpdateListener(view));
+        animation.addUpdateListener(new HeightUpdateListener(view,header));
         animation.setInterpolator(new AccelerateDecelerateInterpolator());
         //animation.setInterpolator(new DecelerateInterpolator());
 
@@ -991,9 +930,10 @@ public class SpringContainer extends FrameLayout {
 
     class HeightUpdateListener implements ValueAnimator.AnimatorUpdateListener {
         View view;
-
-        public HeightUpdateListener(View v) {
+        boolean isHeader;
+        public HeightUpdateListener(View v, boolean header) {
             view = v;
+            this.isHeader = header;
         }
 
         @Override
@@ -1004,12 +944,17 @@ public class SpringContainer extends FrameLayout {
                 ViewGroup.LayoutParams lp = view.getLayoutParams();
                 lp.height = height;
                 view.setLayoutParams(lp);
+                if(isHeader){
+                    headerView.onHeightChanged(height);
+                }else {
+                    //todo: footer
+                }
             }
         }
 
     }
 
-    void stopHeaderFooterAnim() {
+    private void stopHeaderFooterAnim() {
         if (hideHeader != null) {
             hideHeader.cancel();
             hideHeader = null;
@@ -1050,31 +995,31 @@ public class SpringContainer extends FrameLayout {
         return null;
     }
 
-    private void logAction(int action, int pointerIndex, float x, float y){
-        switch (action){
+    private void logAction(int action, int pointerIndex, float x, float y) {
+        switch (action) {
             case MotionEvent.ACTION_DOWN:
-                Log.w(TAG,"ACTION_DOWN");
+                Log.w(TAG, "ACTION_DOWN");
                 break;
 //            case MotionEvent.ACTION_MOVE:
 //                Log.w(TAG,"ACTION_MOVE");
 //                break;
             case MotionEvent.ACTION_UP:
-                Log.w(TAG,"ACTION_UP");
+                Log.w(TAG, "ACTION_UP");
                 break;
             case MotionEvent.ACTION_CANCEL:
-                Log.w(TAG,"ACTION_CANCEL");
+                Log.w(TAG, "ACTION_CANCEL");
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
-                Log.w(TAG,"ACTION_POINTER_DOWN");
+                Log.w(TAG, "ACTION_POINTER_DOWN");
                 break;
             case MotionEvent.ACTION_POINTER_UP:
-                Log.w(TAG,"ACTION_POINTER_UP");
+                Log.w(TAG, "ACTION_POINTER_UP");
                 break;
             case MotionEvent.ACTION_OUTSIDE:
-                Log.w(TAG,"ACTION_OUTSIDE");
+                Log.w(TAG, "ACTION_OUTSIDE");
                 break;
         }
-        Log.w(TAG, "pointerIndex: " + pointerIndex + "  x:"+x + " y:" + y);
+        Log.w(TAG, "pointerIndex: " + pointerIndex + "  x:" + x + " y:" + y);
     }
 
 }
