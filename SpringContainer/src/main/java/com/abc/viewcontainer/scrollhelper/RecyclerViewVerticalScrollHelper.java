@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.verticalscrollhelper;
+package com.abc.viewcontainer.scrollhelper;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;

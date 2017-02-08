@@ -8,12 +8,21 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.ziv.sample.MainActivity">
+    tools:context="com.ziv.sample.test.ScrollViewActivity">
 
-    <TextView
-        android:id="@+id/text_view"
+    <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/holo_green_light"
-        android:text="Hello World!" />
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/text_view"
+            android:layout_width="560dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:textSize="320dp"
+            android:background="@android:color/holo_green_light"
+            android:text="Hello World====fgdfkk Hello World!" />
+
+    </HorizontalScrollView>
+
 </com.abc.viewcontainer.springcontainer.SpringContainer>
