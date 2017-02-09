@@ -679,7 +679,7 @@ public class SpringContainer extends FrameLayout {
      * @return consumed the move or not
      */
     private boolean updateFooterLayout(int distance) {
-        if ((distance <= 0 && headerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop)) {
+        if ((distance <= 0 && footerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop)) {
             return false;
         }
         footerLayoutParams.height += (distance * 4 / 5);
@@ -845,10 +845,10 @@ public class SpringContainer extends FrameLayout {
                         return;
                     }
 
-                    if (headerBackground != null) {
-                        headerBackground.setScaleX(1);
-                        headerBackground.setScaleY(1);
-                    }
+//                    if (headerBackground != null) {
+//                        headerBackground.setScaleX(1);
+//                        headerBackground.setScaleY(1);
+//                    }
 
                     if (currentRefreshingStatus != STATUS_REFRESHING) {
                         int old = currentRefreshingStatus;
@@ -890,20 +890,20 @@ public class SpringContainer extends FrameLayout {
                     if (canceled) {
                         return;
                     }
-                    if (headerBackground != null) {
-                        headerBackground.setScaleX(1);
-                        headerBackground.setScaleY(1);
-                    }
+//                    if (headerBackground != null) {
+//                        headerBackground.setScaleX(1);
+//                        headerBackground.setScaleY(1);
+//                    }
                 }
 
                 @Override
                 public void onAnimationCancel(Animator animation) {
                     canceled = true;
 
-                    if (headerBackground != null) {
-                        headerBackground.setScaleX(1);
-                        headerBackground.setScaleY(1);
-                    }
+//                    if (headerBackground != null) {
+//                        headerBackground.setScaleX(1);
+//                        headerBackground.setScaleY(1);
+//                    }
                 }
             });
         }
