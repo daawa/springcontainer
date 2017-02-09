@@ -35,6 +35,7 @@ import java.util.WeakHashMap;
 
 /**
  * Created by mae on 15/11/21.
+ * TODO: sometime in list view, redundant itemClick event happens 
  */
 public class SpringContainer extends FrameLayout {
 
