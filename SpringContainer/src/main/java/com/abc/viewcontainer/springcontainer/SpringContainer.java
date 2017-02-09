@@ -49,12 +49,12 @@ public class SpringContainer extends FrameLayout {
     public static final int STATUS_REFRESH_CANCELED = 4;
 
     //=================drag 2 load more ===============//
-    public static final int STATUS_DRAG_TO_LOAD = STATUS_PULL_TO_REFRESH;
-    public static final int STATUS_RELEASE_TO_LOAD = STATUS_RELEASE_TO_REFRESH;
-    public static final int STATUS_LOADING = STATUS_REFRESHING;
-    public static final int STATUS_LOAD_FINISHED = STATUS_REFRESH_FINISHED;
-    public static final int STATUS_LOAD_CANCELED = STATUS_REFRESH_CANCELED;
-    //=================drag 2 load more ===============//
+    public static final int STATUS_DRAG_TO_LOAD = 10;
+    public static final int STATUS_RELEASE_TO_LOAD = 11;
+    public static final int STATUS_LOADING = 12;
+    public static final int STATUS_LOAD_FINISHED = 13;
+    public static final int STATUS_LOAD_CANCELED = 14;
+
 
 
     private Pull2RefreshListener mRefreshAction;
@@ -659,7 +659,6 @@ public class SpringContainer extends FrameLayout {
         if (currentRefreshingStatus == STATUS_REFRESHING && headerLayoutParams.height < HeightThreshold) {
             currentRefreshingStatus = STATUS_REFRESH_CANCELED;
             headerView.onStateChanged(old, currentRefreshingStatus);
-            //TODO: cancelRefresh():
         }
         if (currentRefreshingStatus != STATUS_REFRESHING) {
             if (headerLayoutParams.height >= HeightThreshold) {
@@ -1001,7 +1000,7 @@ public class SpringContainer extends FrameLayout {
                 if (isHeader) {
                     headerView.onHeightChanged(height);
                 } else {
-                    //todo: footer
+                    footerView.onHeightChanged(height);
                 }
             }
         }
@@ -1074,6 +1073,29 @@ public class SpringContainer extends FrameLayout {
                 break;
         }
         Log.w(TAG, "pointerIndex: " + pointerIndex + "  x:" + x + " y:" + y);
+    }
+
+    /**
+     * TODO: currently only  STATUS_REFRESHING is supported.
+     * @param state
+     */
+    public void setState(int state){
+        stopHeaderFooterAnim();
+        switch (state){
+            case STATUS_PULL_TO_REFRESH:
+                break;
+            case STATUS_REFRESHING:
+                headerLayoutParams.height = HeightThreshold;
+                headerContainer.setLayoutParams(headerLayoutParams);
+                headerView.onHeightChanged(HeightThreshold);
+                int old = currentRefreshingStatus;
+                currentLoadingStatus = STATUS_REFRESHING;
+                headerView.onStateChanged(old, currentLoadingStatus);
+                if(mRefreshAction != null){
+                    mRefreshAction.onRefresh(this);
+                }
+                break;
+        }
     }
 
 }

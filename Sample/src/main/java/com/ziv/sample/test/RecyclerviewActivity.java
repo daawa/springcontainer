@@ -26,7 +26,13 @@ public class RecyclerviewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_test);
-
+        View refresh = findViewById(R.id.refresh_btn);
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spring.setState(SpringContainer.STATUS_REFRESHING);
+            }
+        });
         spring = (SpringContainer) findViewById(R.id.refreshable_view);
         listView = (ListView) findViewById(R.id.list_view);
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
