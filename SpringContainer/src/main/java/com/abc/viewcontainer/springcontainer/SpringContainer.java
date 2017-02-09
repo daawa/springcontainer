@@ -189,8 +189,6 @@ public class SpringContainer extends FrameLayout {
             attributes.recycle();
         }
 
-        //preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
         LayoutInflater.from(context).inflate(R.layout.springcontainer_header_container, this, true);
         headerContainer = (ViewGroup) findViewById(R.id.spring_container_header);
         headerLayoutParams = headerContainer.getLayoutParams();
@@ -202,8 +200,6 @@ public class SpringContainer extends FrameLayout {
 //        footerProgressBar = (ProgressBar) footerContainer.findViewById(R.id.footer_progress_bar);
 
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-
-        //refreshUpdatedAtValue();
     }
 
     ISpringView headerView;
@@ -936,9 +932,10 @@ public class SpringContainer extends FrameLayout {
                         return;
                     }
 
-                    if (currentLoadingStatus != STATUS_REFRESHING) {
-                        currentLoadingStatus = STATUS_REFRESHING;
-                        //updateFooterView();
+                    if (currentLoadingStatus != STATUS_LOADING) {
+                        int old = currentLoadingStatus;
+                        currentLoadingStatus = STATUS_LOADING;
+                        footerView.onStateChanged(old, currentLoadingStatus);
                         if (mDrag2LoadAction != null) {
                             if (!isLoading) {
                                 isLoading = true;

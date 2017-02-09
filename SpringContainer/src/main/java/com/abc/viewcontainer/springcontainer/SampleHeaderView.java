@@ -94,7 +94,7 @@ public class SampleHeaderView implements ISpringView {
 
     @Override
     public void onHeightChanged(int cur) {
-        headerView.getLayoutParams().height = cur;
+        //headerView.getLayoutParams().height = cur;
     }
 
     @Override
