@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.verticalscrollhelper;
+package com.abc.viewcontainer.scrollhelper;
 
 import android.view.View;
 import android.widget.AbsListView;
@@ -7,10 +7,10 @@ import android.widget.AbsListView;
  * Created by hzzhangzhenwei on 2016/12/22.
  */
 
-public class DefaultVerticalScrollHelper implements IVerticalScrollHelper {
+public class DefaultScrollHelper implements IVerticalScrollHelper, IHorizontalScrollHelper{
     private View target;
 
-    public DefaultVerticalScrollHelper(View v) {
+    public DefaultScrollHelper(View v) {
         target = v;
     }
 
@@ -63,4 +63,13 @@ public class DefaultVerticalScrollHelper implements IVerticalScrollHelper {
 
     }
 
+    @Override
+    public boolean canScrollRight() {
+        return target.canScrollHorizontally(1);
+    }
+
+    @Override
+    public boolean canScrollLeft() {
+        return target.canScrollHorizontally(-1);
+    }
 }

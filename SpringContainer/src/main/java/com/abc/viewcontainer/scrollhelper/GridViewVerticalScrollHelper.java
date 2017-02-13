@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.verticalscrollhelper;
+package com.abc.viewcontainer.scrollhelper;
 
 import android.view.View;
 import android.widget.GridView;

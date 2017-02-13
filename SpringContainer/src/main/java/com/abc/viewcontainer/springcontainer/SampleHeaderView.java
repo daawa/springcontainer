@@ -21,7 +21,7 @@ import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_RELEA
  * Created by hzzhangzhenwei on 2016/12/29.
  */
 
-public class SampleHeaderView implements iHeaderView {
+public class SampleHeaderView implements ISpringView {
     private static final String PREFERENCE_NAME = "com.abc.spring.container";
     private static final String KEY_UPDATED_AT = "updated_at";
 
@@ -94,7 +94,7 @@ public class SampleHeaderView implements iHeaderView {
 
     @Override
     public void onHeightChanged(int cur) {
-        headerView.getLayoutParams().height = cur;
+        //headerView.getLayoutParams().height = cur;
     }
 
     @Override
