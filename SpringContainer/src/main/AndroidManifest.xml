@@ -3,7 +3,7 @@
     package="com.abc.viewcontainer">
 
     <application>
-        <activity android:name="com.ziv.sample.test.RecyclerviewActivity"></activity>
+        <activity android:name="com.ziv.sample.test.RecyclerViewActivity"></activity>
     </application>
 
 </manifest>

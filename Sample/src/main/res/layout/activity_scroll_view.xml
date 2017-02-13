@@ -16,12 +16,12 @@
 
         <TextView
             android:id="@+id/text_view"
-            android:layout_width="560dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:textSize="320dp"
             android:background="@android:color/holo_green_light"
-            android:text="Hello World====fgdfkk Hello World!" />
+            android:text="Hello" />
 
     </HorizontalScrollView>
 

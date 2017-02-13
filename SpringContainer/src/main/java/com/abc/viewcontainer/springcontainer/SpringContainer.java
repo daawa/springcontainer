@@ -673,7 +673,7 @@ public class SpringContainer extends FrameLayout {
      * @return consumed the move or not
      */
     private boolean updateFooterLayout(int distance) {
-        if ((distance <= 0 && footerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop)) {
+        if ((distance <= 0 && footerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop/2)) {
             return false;
         }
         footerLayoutParams.height += (distance * 4 / 5);
