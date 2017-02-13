@@ -35,7 +35,7 @@ import java.util.WeakHashMap;
 
 /**
  * Created by mae on 15/11/21.
- * TODO: sometime in list view, redundant itemClick event happens 
+ * TODO: sometime in list view, redundant itemClick event happens
  */
 public class SpringContainer extends FrameLayout {
 
@@ -55,7 +55,6 @@ public class SpringContainer extends FrameLayout {
     public static final int STATUS_LOADING = 12;
     public static final int STATUS_LOAD_FINISHED = 13;
     public static final int STATUS_LOAD_CANCELED = 14;
-
 
 
     private Pull2RefreshListener mRefreshAction;
@@ -91,6 +90,7 @@ public class SpringContainer extends FrameLayout {
     IVerticalScrollHelper touchDownChildScrollHelper;
     private boolean mAble2PullWhenTouchDown;
     private boolean mAble2PushWhenTouchDown;
+    private boolean mEverConsumedMoveEvent = false;
     WeakHashMap<View, IVerticalScrollHelper> verticalScrollHelperWeakHashMap = new WeakHashMap<>(3);
     //todo:
     WeakHashMap<View, IHorizontalScrollHelper> horizontalScrollHelperWeakHashMap = new WeakHashMap<>(3);
@@ -324,6 +324,7 @@ public class SpringContainer extends FrameLayout {
                 touchDownChildScrollHelper = verticalScrollHelperWeakHashMap.get(pTarget);
                 mAble2PullWhenTouchDown = mSpringEnabled && (isAbleToPull(touchDownChildScrollHelper) || headerContainer.getHeight() > 0);
                 mAble2PushWhenTouchDown = mSpringEnabled && (isAbleToPush(touchDownChildScrollHelper) || footerContainer.getHeight() > 0);
+                mEverConsumedMoveEvent = false;
                 break;
             }
 
@@ -391,13 +392,14 @@ public class SpringContainer extends FrameLayout {
                     boolean consumed = false;
                     //boolean fakeCancel = false;
                     if (mAble2PullWhenTouchDown) {
-                        consumed = updateHeaderLayout(distanceY);
+                        consumed = consumed || updateHeaderLayout(distanceY);
                         //fakeCancel = consumed && interceptedPull;
                     }
                     if (mAble2PushWhenTouchDown) {
                         consumed = consumed || updateFooterLayout(-distanceY);
                         //fakeCancel = fakeCancel || (consumed && interceptedPush);
                     }
+                    mEverConsumedMoveEvent = consumed || mEverConsumedMoveEvent;
 
 //                    if (fakeCancel) {
 //                        MotionEvent cancelEvent = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_CANCEL/*MotionEvent.ACTION_UP*/, event.getX(), event.getY(), 0);
@@ -431,6 +433,12 @@ public class SpringContainer extends FrameLayout {
                     hideFooter.start();
                 }
 
+                if (mEverConsumedMoveEvent && pTarget != null) {
+                    MotionEvent cancelEvent = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_CANCEL/*MotionEvent.ACTION_UP*/, event.getX(), event.getY(), 0);
+                    if (pTarget != null)
+                        pTarget.dispatchTouchEvent(cancelEvent);
+                }
+
                 mInitialYDown = 0;
                 break;
             }
@@ -439,9 +447,6 @@ public class SpringContainer extends FrameLayout {
         // may return false, ( e.g happened in headerView or footerView, or the content view is not interested in any event),
         // so subsequent Action_move or Action_up events would not be received.
         boolean sret = super.dispatchTouchEvent(event);
-//        if(!sret){
-//            mInitialYDown = 0;
-//        }
         return sret || mAble2PullWhenTouchDown || mAble2PushWhenTouchDown;
     }
 
@@ -689,7 +694,7 @@ public class SpringContainer extends FrameLayout {
             } else {
                 currentLoadingStatus = STATUS_DRAG_TO_LOAD;
             }
-            footerView.onStateChanged(old,currentLoadingStatus);
+            footerView.onStateChanged(old, currentLoadingStatus);
         }
 
         return true;
@@ -796,18 +801,18 @@ public class SpringContainer extends FrameLayout {
         return true;
     }
 
-    private boolean targetCanScrollHorizontally(int j){
-        if(pTarget == null){
+    private boolean targetCanScrollHorizontally(int j) {
+        if (pTarget == null) {
             return false;
         }
         IHorizontalScrollHelper horizontalScrollHelper = horizontalScrollHelperWeakHashMap.get(pTarget);
-        if(horizontalScrollHelper == null){
+        if (horizontalScrollHelper == null) {
             return false;
         }
 
-        if(j > 0){
+        if (j > 0) {
             return horizontalScrollHelper.canScrollRight();
-        } else{
+        } else {
             return horizontalScrollHelper.canScrollLeft();
         }
 
@@ -1067,11 +1072,12 @@ public class SpringContainer extends FrameLayout {
 
     /**
      * TODO: currently only  STATUS_REFRESHING is supported.
+     *
      * @param state
      */
-    public void setState(int state){
+    public void setState(int state) {
         stopHeaderFooterAnim();
-        switch (state){
+        switch (state) {
             case STATUS_PULL_TO_REFRESH:
                 break;
             case STATUS_REFRESHING:
@@ -1081,7 +1087,7 @@ public class SpringContainer extends FrameLayout {
                 int old = currentRefreshingStatus;
                 currentLoadingStatus = STATUS_REFRESHING;
                 headerView.onStateChanged(old, currentLoadingStatus);
-                if(mRefreshAction != null){
+                if (mRefreshAction != null) {
                     mRefreshAction.onRefresh(this);
                 }
                 break;
