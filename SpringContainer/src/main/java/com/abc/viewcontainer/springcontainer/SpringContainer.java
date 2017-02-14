@@ -20,8 +20,6 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.abc.viewcontainer.R;
 import com.abc.viewcontainer.scrollhelper.DefaultScrollHelper;
@@ -579,7 +577,7 @@ public class SpringContainer extends FrameLayout {
             if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
                 updateHeaderView();
                 lastRefreshingStatus = currentRefreshingStatus;
-                // 当前正处于下拉或释放状态，通过返回true屏蔽掉 content view 的滚动事件
+                // currently it is pulling or releasing, returning true will prevent content view from scrolling
                 if (distance < 0) {
                     ret = true;
                 }
@@ -1078,18 +1076,30 @@ public class SpringContainer extends FrameLayout {
     public void setState(int state) {
         stopHeaderFooterAnim();
         switch (state) {
-            case STATUS_PULL_TO_REFRESH:
-                break;
             case STATUS_REFRESHING:
                 headerLayoutParams.height = HeightThreshold;
                 headerContainer.setLayoutParams(headerLayoutParams);
                 headerView.onHeightChanged(HeightThreshold);
                 int old = currentRefreshingStatus;
-                currentLoadingStatus = STATUS_REFRESHING;
-                headerView.onStateChanged(old, currentLoadingStatus);
+                currentRefreshingStatus = STATUS_REFRESHING;
+                headerView.onStateChanged(old, currentRefreshingStatus);
                 if (mRefreshAction != null) {
                     mRefreshAction.onRefresh(this);
                 }
+                break;
+            case STATUS_LOADING:
+                footerLayoutParams.height = HeightThreshold;
+                footerContainer.setLayoutParams(footerLayoutParams);
+                footerView.onHeightChanged(HeightThreshold);
+                old = currentLoadingStatus;
+                currentLoadingStatus = STATUS_LOADING;
+                footerView.onStateChanged(old, currentLoadingStatus);
+                if (mDrag2LoadAction != null) {
+                    mDrag2LoadAction.load(this);
+                }
+                break;
+
+            default:
                 break;
         }
     }

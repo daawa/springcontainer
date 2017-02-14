@@ -17,9 +17,9 @@ import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_RELEA
  */
 
 public class SampleFooterView implements ISpringView {
-    public String DRAG_TO_LOAD_TIP = "继续上拉加载更多";
-    public String RELEASE_TO_LOAD_TIP = "释放加载更多";
-    public String LOADING_TIP = "正在加载…";
+    public String DRAG_TO_LOAD_TIP = "keep pushing to load more";
+    public String RELEASE_TO_LOAD_TIP = "release to load more";
+    public String LOADING_TIP = "loading..";
 
     private TextView footerDes;
     private ProgressBar footerProgressBar;

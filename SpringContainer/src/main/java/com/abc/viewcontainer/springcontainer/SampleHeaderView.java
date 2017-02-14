@@ -25,9 +25,9 @@ public class SampleHeaderView implements ISpringView {
     private static final String PREFERENCE_NAME = "com.abc.spring.container";
     private static final String KEY_UPDATED_AT = "updated_at";
 
-    public String PULL_TO_RELEASE_TIP = "下拉可以刷新";
-    public String RELEASE_TO_REFRESH_TIP = "释放立即刷新";
-    public String REFRESHING_TIP = "正在刷新…";
+    public String PULL_TO_RELEASE_TIP = "keep pulling to refresh";
+    public String RELEASE_TO_REFRESH_TIP = "release to refresh";
+    public String REFRESHING_TIP = "refreshing..";
 
     // time interval by milliseconds
     public static final long ONE_MINUTE = 60 * 1000;
@@ -165,23 +165,23 @@ public class SampleHeaderView implements ISpringView {
             updateAtValue = context.getResources().getString(R.string.updated_just_now);
         } else if (timePassed < ONE_HOUR) {
             timeIntoFormat = timePassed / ONE_MINUTE;
-            String value = timeIntoFormat + "分钟";
+            String value = timeIntoFormat + "m";
             updateAtValue = String.format(context.getResources().getString(R.string.updated_at), value);
         } else if (timePassed < ONE_DAY) {
             timeIntoFormat = timePassed / ONE_HOUR;
-            String value = timeIntoFormat + "小时";
+            String value = timeIntoFormat + "h";
             updateAtValue = String.format(context.getResources().getString(R.string.updated_at), value);
         } else if (timePassed < ONE_MONTH) {
             timeIntoFormat = timePassed / ONE_DAY;
-            String value = timeIntoFormat + "天";
+            String value = timeIntoFormat + "d";
             updateAtValue = String.format(context.getResources().getString(R.string.updated_at), value);
         } else if (timePassed < ONE_YEAR) {
             timeIntoFormat = timePassed / ONE_MONTH;
-            String value = timeIntoFormat + "个月";
+            String value = timeIntoFormat + "M";
             updateAtValue = String.format(context.getResources().getString(R.string.updated_at), value);
         } else {
             timeIntoFormat = timePassed / ONE_YEAR;
-            String value = timeIntoFormat + "年";
+            String value = timeIntoFormat + "Y";
             updateAtValue = String.format(context.getResources().getString(R.string.updated_at), value);
         }
         updateAt.setText(updateAtValue);

@@ -35,6 +35,13 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 spring.setState(SpringContainer.STATUS_REFRESHING);
             }
         });
+        View load = findViewById(R.id.load_btn);
+        load.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spring.setState(SpringContainer.STATUS_LOADING);
+            }
+        });
         spring = (SpringContainer) findViewById(R.id.refreshable_view);
         recyclerView = (RecyclerView) findViewById(R.id.list_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
