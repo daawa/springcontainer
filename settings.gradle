@@ -1,1 +1,1 @@
-include ':app', ':SpringContainer', ':Sample'
+include ':SpringContainer', ':Sample'

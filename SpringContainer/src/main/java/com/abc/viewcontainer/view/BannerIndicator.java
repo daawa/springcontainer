@@ -101,7 +101,7 @@ public class BannerIndicator extends View {
 
     private void computeLocaction() {
         int w = getWidth(), h = getHeight();
-        //startX 是第一圆心的位置
+        //startX is the center of the first circle
         this.startX = (w - (itemCount - 1) * (itemSize + itemMargin)) / 2;
         this.startY = h / 2;
         this.xUnit = this.itemSize + this.itemMargin;
