@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.view;
+package com.ziv.lib.viewcontainer.view;
 
 
 import android.content.Context;
@@ -8,7 +8,7 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.abc.viewcontainer.R;
+import com.ziv.lib.viewcontainer.R;
 
 
 /**

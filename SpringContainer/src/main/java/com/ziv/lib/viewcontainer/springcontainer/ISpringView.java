@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.springcontainer;
+package com.ziv.lib.viewcontainer.springcontainer;
 
 import android.view.View;
 import android.view.ViewGroup;

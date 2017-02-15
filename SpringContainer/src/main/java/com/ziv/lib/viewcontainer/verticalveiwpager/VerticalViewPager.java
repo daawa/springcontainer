@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.verticalveiwpager;
+package com.ziv.lib.viewcontainer.verticalveiwpager;
 
 import android.content.Context;
 import android.support.v4.view.MotionEventCompat;
@@ -6,8 +6,8 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
-import com.abc.viewcontainer.scrollhelper.IVerticalScrollHelper;
-import com.abc.viewcontainer.verticalveiwpager.transformer.DefaultTransformer;
+import com.ziv.lib.viewcontainer.scrollhelper.IVerticalScrollHelper;
+import com.ziv.lib.viewcontainer.verticalveiwpager.transformer.DefaultTransformer;
 
 /**
  * Created by zhangzhenwei on 16/8/5.

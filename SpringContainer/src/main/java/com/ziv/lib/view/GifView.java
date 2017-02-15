@@ -1,4 +1,4 @@
-package com.abc.view;
+package com.ziv.lib.view;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -11,7 +11,7 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 
-import com.abc.viewcontainer.R;
+import com.ziv.lib.viewcontainer.R;
 
 import java.io.InputStream;
 

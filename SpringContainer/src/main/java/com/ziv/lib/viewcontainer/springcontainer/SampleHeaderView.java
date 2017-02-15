@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.springcontainer;
+package com.ziv.lib.viewcontainer.springcontainer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -10,12 +10,12 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.abc.viewcontainer.R;
+import com.ziv.lib.viewcontainer.R;
 
-import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_PULL_TO_REFRESH;
-import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_REFRESHING;
-import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_REFRESH_FINISHED;
-import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_REFRESH;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_PULL_TO_REFRESH;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_REFRESHING;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_REFRESH_FINISHED;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_REFRESH;
 
 /**
  * Created by ziv-zh on 2016/12/29.

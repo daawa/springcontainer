@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.scrollhelper;
+package com.ziv.lib.viewcontainer.scrollhelper;
 
 import android.widget.ScrollView;
 

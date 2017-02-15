@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.verticalveiwpager.transformer;
+package com.ziv.lib.viewcontainer.verticalveiwpager.transformer;
 
 import android.support.v4.view.ViewPager;
 import android.view.View;

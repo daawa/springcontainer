@@ -12,14 +12,14 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.abc.viewcontainer.springcontainer.LoadingStateListener;
-import com.abc.viewcontainer.springcontainer.RefreshingStateListener;
-import com.abc.viewcontainer.springcontainer.SampleFooterView;
-import com.abc.viewcontainer.springcontainer.SampleHeaderView;
-import com.abc.viewcontainer.springcontainer.SpringContainer;
+import com.ziv.lib.viewcontainer.springcontainer.LoadingStateListener;
+import com.ziv.lib.viewcontainer.springcontainer.RefreshingStateListener;
+import com.ziv.lib.viewcontainer.springcontainer.SampleFooterView;
+import com.ziv.lib.viewcontainer.springcontainer.SampleHeaderView;
+import com.ziv.lib.viewcontainer.springcontainer.SpringContainer;
 import com.ziv.sample.R;
 
-public class RecyclerviewActivity extends AppCompatActivity {
+public class RecyclerViewActivity extends AppCompatActivity {
     SpringContainer spring;
     RecyclerView recyclerView;
 

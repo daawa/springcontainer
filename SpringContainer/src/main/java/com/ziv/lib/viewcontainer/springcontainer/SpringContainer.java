@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.springcontainer;
+package com.ziv.lib.viewcontainer.springcontainer;
 
 /**
  * Created by zhangzhenwei on 16/7/26.
@@ -21,10 +21,10 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 
-import com.abc.viewcontainer.R;
-import com.abc.viewcontainer.scrollhelper.DefaultScrollHelper;
-import com.abc.viewcontainer.scrollhelper.IHorizontalScrollHelper;
-import com.abc.viewcontainer.scrollhelper.IVerticalScrollHelper;
+import com.ziv.lib.viewcontainer.R;
+import com.ziv.lib.viewcontainer.scrollhelper.DefaultScrollHelper;
+import com.ziv.lib.viewcontainer.scrollhelper.IHorizontalScrollHelper;
+import com.ziv.lib.viewcontainer.scrollhelper.IVerticalScrollHelper;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.abc.viewcontainer.springcontainer;
+package com.ziv.lib.viewcontainer.springcontainer;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -6,11 +6,11 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.abc.viewcontainer.R;
+import com.ziv.lib.viewcontainer.R;
 
-import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_DRAG_TO_LOAD;
-import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_LOADING;
-import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_LOAD;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_DRAG_TO_LOAD;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_LOADING;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_LOAD;
 
 /**
  * Created by ziv-zh on 2017/2/8.

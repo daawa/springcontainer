@@ -1,6 +1,6 @@
-package com.abc.viewcontainer.verticalveiwpager;
+package com.ziv.lib.viewcontainer.verticalveiwpager;
 
-import com.abc.viewcontainer.scrollhelper.IVerticalScrollHelper;
+import com.ziv.lib.viewcontainer.scrollhelper.IVerticalScrollHelper;
 
 /**
  * Created by zhangzhenwei on 16/8/5.

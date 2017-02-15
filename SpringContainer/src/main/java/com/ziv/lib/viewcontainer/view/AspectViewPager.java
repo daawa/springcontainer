@@ -1,11 +1,11 @@
-package com.abc.viewcontainer.view;
+package com.ziv.lib.viewcontainer.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 
-import com.abc.viewcontainer.R;
+import com.ziv.lib.viewcontainer.R;
 
 
 /**
