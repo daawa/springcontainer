@@ -23,7 +23,7 @@ ext {
     siteUrl = 'https://github.com/ziv-zh/springcontainer'
     gitUrl = 'https://github.com/ziv-zh/springcontainer.git'
 
-    libraryVersion = '0.2.1'
+    libraryVersion = '0.2.2'
 
     developerId = 'ziv-zh'
     developerName = 'ziv zhang'
