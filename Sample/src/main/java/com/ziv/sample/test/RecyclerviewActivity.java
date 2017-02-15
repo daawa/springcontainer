@@ -12,14 +12,14 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.abc.viewcontainer.springcontainer.Drag2LoadListener;
-import com.abc.viewcontainer.springcontainer.Pull2RefreshListener;
+import com.abc.viewcontainer.springcontainer.LoadingStateListener;
+import com.abc.viewcontainer.springcontainer.RefreshingStateListener;
 import com.abc.viewcontainer.springcontainer.SampleFooterView;
 import com.abc.viewcontainer.springcontainer.SampleHeaderView;
 import com.abc.viewcontainer.springcontainer.SpringContainer;
 import com.ziv.sample.R;
 
-public class RecyclerViewActivity extends AppCompatActivity {
+public class RecyclerviewActivity extends AppCompatActivity {
     SpringContainer spring;
     RecyclerView recyclerView;
 
@@ -47,9 +47,9 @@ public class RecyclerViewActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new ItemAdapter());
         spring.setHeaderView(new SampleHeaderView(this));
-        spring.setOnRefreshListener(new Pull2RefreshListener() {
+        spring.setOnRefreshingStateListener(new RefreshingStateListener() {
             @Override
-            public void onRefresh(SpringContainer v) {
+            public void onRefreshing(SpringContainer v) {
                 v.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -61,13 +61,13 @@ public class RecyclerViewActivity extends AppCompatActivity {
         });
 
         spring.setFooterView(new SampleFooterView());
-        spring.setOnLoadListener(new Drag2LoadListener() {
+        spring.setOnLoadListener(new LoadingStateListener() {
             @Override
-            public void load(SpringContainer v) {
+            public void onLoading(SpringContainer v) {
                 v.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        spring.finishLoadingMore();
+                        spring.finishLoading();
                     }
                 },1000);
             }

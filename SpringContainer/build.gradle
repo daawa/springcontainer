@@ -23,7 +23,7 @@ ext {
     siteUrl = 'https://github.com/ziv-zh/springcontainer'
     gitUrl = 'https://github.com/ziv-zh/springcontainer.git'
 
-    libraryVersion = '0.2.0'
+    libraryVersion = '0.2.1'
 
     developerId = 'ziv-zh'
     developerName = 'ziv zhang'
@@ -93,8 +93,8 @@ dependencies {
 }
 
 // Place it at the end of the file
-apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
-apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+apply from: 'https://raw.githubusercontent.com/ziv-zh/notes/master/files/install.gradle'
+apply from: 'https://raw.githubusercontent.com/ziv-zh/notes/master/files/bintray.gradle'
 
 
 

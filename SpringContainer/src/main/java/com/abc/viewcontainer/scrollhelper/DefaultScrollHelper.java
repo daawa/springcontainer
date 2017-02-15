@@ -4,7 +4,7 @@ import android.view.View;
 import android.widget.AbsListView;
 
 /**
- * Created by hzzhangzhenwei on 2016/12/22.
+ * Created by ziv-zh on 2016/12/22.
  */
 
 public class DefaultScrollHelper implements IVerticalScrollHelper, IHorizontalScrollHelper{

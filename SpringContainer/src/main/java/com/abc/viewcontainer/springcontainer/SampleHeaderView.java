@@ -18,7 +18,7 @@ import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_REFRE
 import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_REFRESH;
 
 /**
- * Created by hzzhangzhenwei on 2016/12/29.
+ * Created by ziv-zh on 2016/12/29.
  */
 
 public class SampleHeaderView implements ISpringView {
@@ -90,6 +90,10 @@ public class SampleHeaderView implements ISpringView {
     public void onStateChanged(int old, int state) {
         currentRefreshingStatus = state;
         updateHeaderView();
+
+        if(old == STATUS_REFRESHING){
+            preferences.edit().putLong(KEY_UPDATED_AT + mId4UpdateTime, System.currentTimeMillis()).commit();
+        }
     }
 
     @Override
@@ -97,10 +101,6 @@ public class SampleHeaderView implements ISpringView {
         //headerView.getLayoutParams().height = cur;
     }
 
-    @Override
-    public void onRefreshFinished() {
-        preferences.edit().putLong(KEY_UPDATED_AT + mId4UpdateTime, System.currentTimeMillis()).commit();
-    }
 
     private void updateHeaderView() {
         if (lastRefreshingStatus != currentRefreshingStatus) {

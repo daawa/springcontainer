@@ -13,12 +13,12 @@ import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_LOADI
 import static com.abc.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_LOAD;
 
 /**
- * Created by hzzhangzhenwei on 2017/2/8.
+ * Created by ziv-zh on 2017/2/8.
  */
 
 public class SampleFooterView implements ISpringView {
-    public String DRAG_TO_LOAD_TIP = "keep pushing to load more";
-    public String RELEASE_TO_LOAD_TIP = "release to load more";
+    public String DRAG_TO_LOAD_TIP = "keep pushing to onLoading more";
+    public String RELEASE_TO_LOAD_TIP = "release to onLoading more";
     public String LOADING_TIP = "loading..";
 
     private TextView footerDes;
@@ -50,10 +50,6 @@ public class SampleFooterView implements ISpringView {
 
     }
 
-    @Override
-    public void onRefreshFinished() {
-
-    }
 
     private void updateFooterView() {
         if (lastLoadingStatus != currentLoadingStatus) {
