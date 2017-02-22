@@ -66,6 +66,18 @@ In the following demo, clicking ***refresh*** button makes SpringContainer trans
 ### 2. for gradle:
 
 	compile 'com.ziv.lib:SpringContainer:0.2.2'
+	
+
+If you use JitPack repository,
+Add it in your root build.gradle at the end of repositories:
+
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+	
 
 
 <br/><br/>
