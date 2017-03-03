@@ -41,17 +41,17 @@ public class SpringContainer extends FrameLayout {
 
     private boolean mSpringEnabled = true;
 
-    public static final int STATUS_PULL_TO_REFRESH = 0;// pulling
-    public static final int STATUS_RELEASE_TO_REFRESH = 1;
-    public static final int STATUS_REFRESHING = 2;
-    public static final int STATUS_REFRESH_FINISHED = 3;
-    public static final int STATUS_REFRESH_CANCELED = 4;
+    public static final int STATUS_TOP_PULL_TO_LINGER = 0;// pulling
+    public static final int STATUS_TOP_RELEASE_TO_LINGER = 1;
+    public static final int STATUS_TOP_LINGERING = 2;
+    public static final int STATUS_TOP_LINGER_FINISHED = 3;
+    public static final int STATUS_TOP_LINGER_CANCELED = 4;
 
-    public static final int STATUS_DRAG_TO_LOAD = 10;
-    public static final int STATUS_RELEASE_TO_LOAD = 11;
-    public static final int STATUS_LOADING = 12;
-    public static final int STATUS_LOAD_FINISHED = 13;
-    public static final int STATUS_LOAD_CANCELED = 14;
+    public static final int STATUS_BOTTOM_DRAG_TO_LINGER = 10;
+    public static final int STATUS_BOTTOM_RELEASE_TO_LINGER = 11;
+    public static final int STATUS_BOTTOM_LINGERING = 12;
+    public static final int STATUS_BOTTOM_LINGER_FINISHED = 13;
+    public static final int STATUS_BOTTOM_LINGER_CANCELED = 14;
 
     ISpringView headerView;
     ISpringView footerView;
@@ -61,11 +61,13 @@ public class SpringContainer extends FrameLayout {
 
     /**
      * height threshold of headerContainer view,
-     * at which the spring container will transfer to {@link #STATUS_RELEASE_TO_REFRESH } state
+     * at which the spring container will transfer to {@link #STATUS_TOP_RELEASE_TO_LINGER } state
      */
     //private int HeightThreshold = 240;
     private int TopThreshold = 240;
     private int BottomThreshold = 240;
+
+    private int mReboundBaseTime = 300;
 
     /**
      * headerContainer view
@@ -97,11 +99,11 @@ public class SpringContainer extends FrameLayout {
     private WeakHashMap<View, IHorizontalScrollHelper> horizontalScrollHelperWeakHashMap = new WeakHashMap<>(3);
 
 
-    private int currentRefreshingStatus = STATUS_REFRESH_FINISHED;
-    private int currentLoadingStatus = STATUS_LOAD_FINISHED;
-    private boolean isLoading = false;
+    private int currentRefreshingStatus = STATUS_TOP_LINGER_FINISHED;
+    private int currentLoadingStatus = STATUS_BOTTOM_LINGER_FINISHED;
 
-    private boolean isRefreshing = false;
+    private boolean isBottomLingering = false;
+    private boolean isTopLingering = false;
 
     private int mInitialYDown;
     private int mInitialXDown; //todo:
@@ -143,6 +145,10 @@ public class SpringContainer extends FrameLayout {
 
             }
 
+            @Override
+            public boolean onRelease(ViewGroup v) {
+                return false;
+            }
         });
 
         setFooterView(new ISpringView() {
@@ -164,6 +170,11 @@ public class SpringContainer extends FrameLayout {
             @Override
             public void onHeightChanged(int cur) {
 
+            }
+
+            @Override
+            public boolean onRelease(ViewGroup v) {
+                return false;
             }
 
         });
@@ -189,9 +200,9 @@ public class SpringContainer extends FrameLayout {
     /**
      * set a custom {@link IVerticalScrollHelper IVerticalScrollHelper} for the child view.
      * SpringContainer uses {@link DefaultScrollHelper DefaultScrollHelper} for every content view by default.
+     *
      * @param child
      * @param childScrollHelper see {@link IVerticalScrollHelper IVerticalScrollHelper}
-     *
      */
     public void addChildVerticalScrollHelper(View child, IVerticalScrollHelper childScrollHelper) {
         this.verticalScrollHelperWeakHashMap.put(child, childScrollHelper);
@@ -240,23 +251,23 @@ public class SpringContainer extends FrameLayout {
 
     /**
      * set the height threshold of headerContainer view,
-     * at which the spring container's state  will transfer between {@link #STATUS_RELEASE_TO_REFRESH } and {@link #STATUS_PULL_TO_REFRESH } during pulling,
-     * and at which the headerContainer's height will remain while SpringContainer's state is {@link #STATUS_REFRESHING}
+     * at which the spring container's state  will transfer between {@link #STATUS_TOP_RELEASE_TO_LINGER } and {@link #STATUS_TOP_PULL_TO_LINGER } during pulling,
+     * and at which the headerContainer's height will remain while SpringContainer's state is {@link #STATUS_TOP_LINGERING}
      *
      * @param height height threshold of headerContainer view
      */
-    public void setTopThreshold(int height){
+    public void setTopThreshold(int height) {
         TopThreshold = height;
     }
 
     /**
      * set the height threshold of footerContainer view,
-     * at which the spring container's state  will transfer between {@link #STATUS_RELEASE_TO_LOAD } and {@link #STATUS_DRAG_TO_LOAD } during pushing,
-     * and at which the footerContainer's height will remain while SpringContainer's state is {@link #STATUS_LOADING}
+     * at which the spring container's state  will transfer between {@link #STATUS_BOTTOM_RELEASE_TO_LINGER } and {@link #STATUS_BOTTOM_DRAG_TO_LINGER } during pushing,
+     * and at which the footerContainer's height will remain while SpringContainer's state is {@link #STATUS_BOTTOM_LINGERING}
      *
      * @param height height threshold of footerContainer view
      */
-    public void setBottomThreshold(int height){
+    public void setBottomThreshold(int height) {
         BottomThreshold = height;
     }
 
@@ -306,10 +317,20 @@ public class SpringContainer extends FrameLayout {
 
     /**
      * whether or not enable the 'spring' feature, if false, SpringContainer is just a {@link FrameLayout FrameLayout}
+     *
      * @param enable
      */
     public void setSpringEnabled(boolean enable) {
         mSpringEnabled = enable;
+    }
+
+    /**
+     * set the time duration between the time you finger is up and the time when top or bottom view shrinking to be gone
+     * if duration is less than or equal to 0, the top or bottom view will stay as it is after your finger leaves.
+     * @param duration milliseconds
+     */
+    public void setReboundBaseTime(int duration) {
+        this.mReboundBaseTime = duration;
     }
 
     @Override
@@ -450,12 +471,16 @@ public class SpringContainer extends FrameLayout {
             case MotionEvent.ACTION_UP:
             default: {
                 if (mAble2PullWhenTouchDown) {
-                    hideHeader = createHideHeaderAnimaton();
-                    hideHeader.start();
+                    if (!headerView.onRelease(headerContainer)) {
+                        hideHeader = createHideHeaderAnimaton();
+                        hideHeader.start();
+                    }
                 }
                 if (mAble2PushWhenTouchDown) {
-                    hideFooter = createHideFooterAnimation();
-                    hideFooter.start();
+                    if (!footerView.onRelease(footerContainer)) {
+                        hideFooter = createHideFooterAnimation();
+                        hideFooter.start();
+                    }
                 }
 
                 if (mEverConsumedMoveEvent && pTarget != null) {
@@ -548,89 +573,6 @@ public class SpringContainer extends FrameLayout {
     }
 
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-
-        /*
-        stopHeaderFooterAnim();
-        boolean ret = false;
-
-        final int action = MotionEventCompat.getActionMasked(event);
-        final int actionIndex = MotionEventCompat.getActionIndex(event);
-
-//        boolean able2pull = mSpringEnabled  && (mAble2PullWhenTouchDown || (isAble2PullNow(event.getX(),event.getY()) || headerContainer.getHeight() > 0));
-//        boolean able2push = mSpringEnabled && (mAble2PushWhenTouchDown ||isAble2PushNow(event.getX(),event.getY()) || footerContainer.getHeight() > 0);
-
-        //if (able2pull || able2push) {
-        int distance = 0;
-        switch (action) {
-            case MotionEvent.ACTION_MOVE: {
-                final int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
-                if (index < 0) {
-                    return false;
-                }
-                int yMove = (int) (MotionEventCompat.getY(event, index) + 0.5f);
-                distance = yMove - mInitialYDown;
-                if (mAble2PullWhenTouchDown) {
-                    updateHeaderLayout(distance);
-                }
-                if (mAble2PushWhenTouchDown) {
-                    updateFooterLayout(-distance);
-                }
-                mInitialYDown = yMove;
-                break;
-            }
-
-
-            case MotionEvent.ACTION_UP:
-            default: {
-                if (mAble2PullWhenTouchDown) {
-                    hideHeader = createHideHeaderAnimaton();
-                    hideHeader.start();
-                }
-                if (mAble2PushWhenTouchDown) {
-                    hideFooter = createHideFooterAnimation();
-                    hideFooter.start();
-                }
-
-                mInitialYDown = 0;
-            }
-            break;
-        }
-
-        if (mAble2PullWhenTouchDown) {
-            //update headerContainer view
-            if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH || currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
-                updateHeaderView();
-                lastRefreshingStatus = currentRefreshingStatus;
-                // currently it is pulling or releasing, returning true will prevent content view from scrolling
-                if (distance < 0) {
-                    ret = true;
-                }
-            }
-        }
-
-        if (mAble2PushWhenTouchDown) {
-            if (currentLoadingStatus == STATUS_DRAG_TO_LOAD || currentLoadingStatus == STATUS_RELEASE_TO_LOAD) {
-                updateFooterView();
-                lastLoadingStatus = currentLoadingStatus;
-                if (distance > 0) {
-                    ret = true;
-                }
-            }
-        }
-
-        //}
-
-        if (ret) {
-            return true;
-        } else {
-            return false;
-        } */
-
-        return super.onTouchEvent(event);
-    }
-
     private void onPointerUp(MotionEvent e) {
         final int actionIndex = MotionEventCompat.getActionIndex(e);
         if (MotionEventCompat.getPointerId(e, actionIndex) == mScrollPointerId) {
@@ -675,15 +617,15 @@ public class SpringContainer extends FrameLayout {
         }*/
 
         int old = currentRefreshingStatus;
-        if (currentRefreshingStatus == STATUS_REFRESHING && headerLayoutParams.height < TopThreshold) {
-            currentRefreshingStatus = STATUS_REFRESH_CANCELED;
+        if (currentRefreshingStatus == STATUS_TOP_LINGERING && headerLayoutParams.height < TopThreshold) {
+            currentRefreshingStatus = STATUS_TOP_LINGER_CANCELED;
             headerView.onStateChanged(old, currentRefreshingStatus);
         }
-        if (currentRefreshingStatus != STATUS_REFRESHING) {
+        if (currentRefreshingStatus != STATUS_TOP_LINGERING) {
             if (headerLayoutParams.height >= TopThreshold) {
-                currentRefreshingStatus = STATUS_RELEASE_TO_REFRESH;
+                currentRefreshingStatus = STATUS_TOP_RELEASE_TO_LINGER;
             } else {
-                currentRefreshingStatus = STATUS_PULL_TO_REFRESH;
+                currentRefreshingStatus = STATUS_TOP_PULL_TO_LINGER;
             }
             headerView.onStateChanged(old, currentRefreshingStatus);
         }
@@ -697,7 +639,7 @@ public class SpringContainer extends FrameLayout {
      * @return consumed the move or not
      */
     private boolean updateFooterLayout(int distance) {
-        if ((distance <= 0 && footerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop/2)) {
+        if ((distance <= 0 && footerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop / 2)) {
             return false;
         }
         footerLayoutParams.height += (distance * 4 / 5);
@@ -708,15 +650,15 @@ public class SpringContainer extends FrameLayout {
         footerView.onHeightChanged(footerLayoutParams.height);
 
         int old = currentLoadingStatus;
-        if (currentLoadingStatus == STATUS_LOADING && footerLayoutParams.height < BottomThreshold) {
-            currentLoadingStatus = STATUS_LOAD_CANCELED;
+        if (currentLoadingStatus == STATUS_BOTTOM_LINGERING && footerLayoutParams.height < BottomThreshold) {
+            currentLoadingStatus = STATUS_BOTTOM_LINGER_CANCELED;
             footerView.onStateChanged(old, currentLoadingStatus);
         }
-        if (currentLoadingStatus != STATUS_LOADING) {
+        if (currentLoadingStatus != STATUS_BOTTOM_LINGERING) {
             if (footerLayoutParams.height >= BottomThreshold) {
-                currentLoadingStatus = STATUS_RELEASE_TO_LOAD;
+                currentLoadingStatus = STATUS_BOTTOM_RELEASE_TO_LINGER;
             } else {
-                currentLoadingStatus = STATUS_DRAG_TO_LOAD;
+                currentLoadingStatus = STATUS_BOTTOM_DRAG_TO_LINGER;
             }
             footerView.onStateChanged(old, currentLoadingStatus);
         }
@@ -725,7 +667,8 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     * set a listener for state {@link #STATUS_REFRESHING}
+     * set a listener for state {@link #STATUS_TOP_LINGERING}
+     *
      * @param listener set {@link RefreshingStateListener}
      */
     public void setOnRefreshingStateListener(RefreshingStateListener listener) {
@@ -740,7 +683,8 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     * set a listener for state {@link #STATUS_LOADING}
+     * set a listener for state {@link #STATUS_BOTTOM_LINGERING}
+     *
      * @param listener set {@link LoadingStateListener}
      */
     public void setOnLoadListener(LoadingStateListener listener) {
@@ -754,12 +698,12 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     * notify spring container to change state to {@link #STATUS_REFRESH_FINISHED}
+     * notify spring container to change state to {@link #STATUS_TOP_LINGER_FINISHED}
      */
-    public void finishRefreshing() {
-        isRefreshing = false;
+    public void finishTopLingering() {
+        isTopLingering = false;
         int old = currentRefreshingStatus;
-        currentRefreshingStatus = STATUS_REFRESH_FINISHED;
+        currentRefreshingStatus = STATUS_TOP_LINGER_FINISHED;
         headerView.onStateChanged(old, currentRefreshingStatus);
         if (mInitialYDown <= 0) {
             hideHeader = createHideHeaderAnimaton();
@@ -769,13 +713,13 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     * notify spring container to change state to {@link #STATUS_LOAD_FINISHED}
+     * notify spring container to change state to {@link #STATUS_BOTTOM_LINGER_FINISHED}
      */
-    public void finishLoading() {
-        isLoading = false;
+    public void finishBottomLingering() {
+        isBottomLingering = false;
         int old = currentLoadingStatus;
-        currentLoadingStatus = STATUS_LOAD_FINISHED;
-        footerView.onStateChanged(old,currentLoadingStatus);
+        currentLoadingStatus = STATUS_BOTTOM_LINGER_FINISHED;
+        footerView.onStateChanged(old, currentLoadingStatus);
         if (mInitialYDown <= 0) {
             hideFooter = createHideFooterAnimation();
             hideFooter.start();
@@ -879,18 +823,18 @@ public class SpringContainer extends FrameLayout {
 //                        headerBackground.setScaleY(1);
 //                    }
 
-                    if (currentRefreshingStatus != STATUS_REFRESHING) {
+                    if (currentRefreshingStatus != STATUS_TOP_LINGERING) {
                         int old = currentRefreshingStatus;
-                        currentRefreshingStatus = STATUS_REFRESHING;
+                        currentRefreshingStatus = STATUS_TOP_LINGERING;
                         headerView.onStateChanged(old, currentRefreshingStatus);
                         if (mRefreshAction != null) {
-                            if (!isRefreshing) {
-                                isRefreshing = true;
+                            if (!isTopLingering) {
+                                isTopLingering = true;
                                 mRefreshAction.onRefreshing(SpringContainer.this);
                             }
 
                         } else {
-                            SpringContainer.this.finishRefreshing();
+                            SpringContainer.this.finishTopLingering();
                         }
                     }
                 }
@@ -961,18 +905,18 @@ public class SpringContainer extends FrameLayout {
                         return;
                     }
 
-                    if (currentLoadingStatus != STATUS_LOADING) {
+                    if (currentLoadingStatus != STATUS_BOTTOM_LINGERING) {
                         int old = currentLoadingStatus;
-                        currentLoadingStatus = STATUS_LOADING;
+                        currentLoadingStatus = STATUS_BOTTOM_LINGERING;
                         footerView.onStateChanged(old, currentLoadingStatus);
                         if (mDrag2LoadAction != null) {
-                            if (!isLoading) {
-                                isLoading = true;
+                            if (!isBottomLingering) {
+                                isBottomLingering = true;
                                 mDrag2LoadAction.onLoading(SpringContainer.this);
                             }
 
                         } else {
-                            SpringContainer.this.finishLoading();
+                            SpringContainer.this.finishBottomLingering();
                         }
                     }
                 }
@@ -998,7 +942,7 @@ public class SpringContainer extends FrameLayout {
         int abs = Math.abs(from - to);
 
         //int duration = 300 + (int)Math.log(abs + Math.E);
-        int duration = 300 + (int) Math.sqrt(abs);
+        int duration = mReboundBaseTime + (int) Math.sqrt(abs);
 
         animation.setDuration(duration);
 
@@ -1104,30 +1048,31 @@ public class SpringContainer extends FrameLayout {
     }
 
     /**
-     * TODO: currently only  STATUS_REFRESHING and STATUS_LOADING is supported.
+     * TODO: currently only  STATUS_TOP_LINGERING and STATUS_BOTTOM_LINGERING is supported.
      * make SpringContainer transfer to the target state
+     *
      * @param state target state SpringContainer will transfer to
      */
     public void setState(int state) {
         stopHeaderFooterAnim();
         switch (state) {
-            case STATUS_REFRESHING:
+            case STATUS_TOP_LINGERING:
                 headerLayoutParams.height = TopThreshold;
                 headerContainer.setLayoutParams(headerLayoutParams);
                 headerView.onHeightChanged(TopThreshold);
                 int old = currentRefreshingStatus;
-                currentRefreshingStatus = STATUS_REFRESHING;
+                currentRefreshingStatus = STATUS_TOP_LINGERING;
                 headerView.onStateChanged(old, currentRefreshingStatus);
                 if (mRefreshAction != null) {
                     mRefreshAction.onRefreshing(this);
                 }
                 break;
-            case STATUS_LOADING:
+            case STATUS_BOTTOM_LINGERING:
                 footerLayoutParams.height = BottomThreshold;
                 footerContainer.setLayoutParams(footerLayoutParams);
                 footerView.onHeightChanged(BottomThreshold);
                 old = currentLoadingStatus;
-                currentLoadingStatus = STATUS_LOADING;
+                currentLoadingStatus = STATUS_BOTTOM_LINGERING;
                 footerView.onStateChanged(old, currentLoadingStatus);
                 if (mDrag2LoadAction != null) {
                     mDrag2LoadAction.onLoading(this);

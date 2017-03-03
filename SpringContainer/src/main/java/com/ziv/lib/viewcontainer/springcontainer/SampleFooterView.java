@@ -8,9 +8,9 @@ import android.widget.TextView;
 
 import com.ziv.lib.viewcontainer.R;
 
-import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_DRAG_TO_LOAD;
-import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_LOADING;
-import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_LOAD;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_BOTTOM_DRAG_TO_LINGER;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_BOTTOM_LINGERING;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_BOTTOM_RELEASE_TO_LINGER;
 
 /**
  * Created by ziv-zh on 2017/2/8.
@@ -24,7 +24,7 @@ public class SampleFooterView implements ISpringView {
     private TextView footerDes;
     private ProgressBar footerProgressBar;
 
-    private int currentLoadingStatus = SpringContainer.STATUS_LOAD_FINISHED;
+    private int currentLoadingStatus = SpringContainer.STATUS_BOTTOM_LINGER_FINISHED;
     private int lastLoadingStatus = currentLoadingStatus;
     @Override
     public View onCreateSpringView(ViewGroup springView) {
@@ -53,13 +53,13 @@ public class SampleFooterView implements ISpringView {
 
     private void updateFooterView() {
         if (lastLoadingStatus != currentLoadingStatus) {
-            if (currentLoadingStatus == STATUS_DRAG_TO_LOAD) {
+            if (currentLoadingStatus == STATUS_BOTTOM_DRAG_TO_LINGER) {
                 footerDes.setText(DRAG_TO_LOAD_TIP);
                 footerProgressBar.setVisibility(View.INVISIBLE);
-            } else if (currentLoadingStatus == STATUS_RELEASE_TO_LOAD) {
+            } else if (currentLoadingStatus == STATUS_BOTTOM_RELEASE_TO_LINGER) {
                 footerDes.setText(RELEASE_TO_LOAD_TIP);
                 footerProgressBar.setVisibility(View.INVISIBLE);
-            } else if (currentLoadingStatus == STATUS_LOADING) {
+            } else if (currentLoadingStatus == STATUS_BOTTOM_LINGERING) {
                 footerDes.setText(LOADING_TIP);
                 footerProgressBar.setVisibility(View.VISIBLE);
             }
@@ -67,5 +67,10 @@ public class SampleFooterView implements ISpringView {
             lastLoadingStatus = currentLoadingStatus;
         }
 
+    }
+
+    @Override
+    public boolean onRelease(ViewGroup springView) {
+        return false;
     }
 }

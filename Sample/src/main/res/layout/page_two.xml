@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.ziv.lib.viewcontainer.springcontainer.SpringContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_two"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/holo_green_light"
+        android:gravity="center"
+        android:text="Page B"
+        android:textSize="56dp" />
+
+</com.ziv.lib.viewcontainer.springcontainer.SpringContainer>
+

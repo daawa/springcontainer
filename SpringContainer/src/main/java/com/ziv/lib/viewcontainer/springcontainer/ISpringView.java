@@ -37,4 +37,6 @@ public interface ISpringView {
      */
     void onHeightChanged(int cur);
     //void onRefreshFinished();
+
+    boolean onRelease(ViewGroup springView);
 }

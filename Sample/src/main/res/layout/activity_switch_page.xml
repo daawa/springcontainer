@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:background="@android:color/darker_gray"
+    android:layout_height="match_parent">
+
+    <com.ziv.lib.viewcontainer.springcontainer.SpringContainer
+        android:background="@android:color/white"
+        android:id="@+id/page_two"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/holo_green_light"
+            android:gravity="center"
+            android:text="Page B\nPage B\nPage B\nPage B\nPage B\nPage B"
+            android:textSize="56dp" />
+
+    </com.ziv.lib.viewcontainer.springcontainer.SpringContainer>
+
+    <com.ziv.lib.viewcontainer.springcontainer.SpringContainer
+        android:background="@android:color/holo_blue_light"
+        android:id="@+id/page_one"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/holo_orange_light"
+            android:gravity="center"
+            android:text="Page A\nPage A\nPage A\nPage "
+            android:textSize="56dp" />
+
+    </com.ziv.lib.viewcontainer.springcontainer.SpringContainer>
+
+</FrameLayout>

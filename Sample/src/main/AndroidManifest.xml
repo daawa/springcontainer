@@ -8,17 +8,27 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".test.ScrollViewActivity" android:label="scrollview">
+        <activity
+            android:name=".test.ScrollViewActivity"
+            android:label="scrollview">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".test.RecyclerViewActivity" android:label="recyclerview">
+        <activity
+            android:name=".test.RecyclerViewActivity"
+            android:label="recyclerview">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".test.SwitchPageActivity"
+            android:label="switch">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

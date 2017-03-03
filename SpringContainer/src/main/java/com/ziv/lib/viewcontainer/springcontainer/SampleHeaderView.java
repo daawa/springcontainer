@@ -12,10 +12,10 @@ import android.widget.TextView;
 
 import com.ziv.lib.viewcontainer.R;
 
-import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_PULL_TO_REFRESH;
-import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_REFRESHING;
-import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_REFRESH_FINISHED;
-import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_RELEASE_TO_REFRESH;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_TOP_PULL_TO_LINGER;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_TOP_LINGERING;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_TOP_LINGER_FINISHED;
+import static com.ziv.lib.viewcontainer.springcontainer.SpringContainer.STATUS_TOP_RELEASE_TO_LINGER;
 
 /**
  * Created by ziv-zh on 2016/12/29.
@@ -56,7 +56,7 @@ public class SampleHeaderView implements ISpringView {
      */
     private String mId4UpdateTime = "sample.header";
 
-    private int currentRefreshingStatus = STATUS_REFRESH_FINISHED;
+    private int currentRefreshingStatus = STATUS_TOP_LINGER_FINISHED;
     private int lastRefreshingStatus = currentRefreshingStatus;
 
     Context context;
@@ -91,7 +91,7 @@ public class SampleHeaderView implements ISpringView {
         currentRefreshingStatus = state;
         updateHeaderView();
 
-        if(old == STATUS_REFRESHING){
+        if(old == STATUS_TOP_LINGERING){
             preferences.edit().putLong(KEY_UPDATED_AT + mId4UpdateTime, System.currentTimeMillis()).commit();
         }
     }
@@ -104,17 +104,17 @@ public class SampleHeaderView implements ISpringView {
 
     private void updateHeaderView() {
         if (lastRefreshingStatus != currentRefreshingStatus) {
-            if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH) {
+            if (currentRefreshingStatus == STATUS_TOP_PULL_TO_LINGER) {
                 description.setText(PULL_TO_RELEASE_TIP);
                 arrow.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
                 rotateArrow();
-            } else if (currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
+            } else if (currentRefreshingStatus == STATUS_TOP_RELEASE_TO_LINGER) {
                 description.setText(RELEASE_TO_REFRESH_TIP);
                 arrow.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
                 rotateArrow();
-            } else if (currentRefreshingStatus == STATUS_REFRESHING) {
+            } else if (currentRefreshingStatus == STATUS_TOP_LINGERING) {
                 description.setText(REFRESHING_TIP);
                 progressBar.setVisibility(View.VISIBLE);
                 arrow.clearAnimation();
@@ -134,10 +134,10 @@ public class SampleHeaderView implements ISpringView {
         float pivotY = arrow.getHeight() / 2f;
         float fromDegrees = 0f;
         float toDegrees = 0f;
-        if (currentRefreshingStatus == STATUS_PULL_TO_REFRESH) {
+        if (currentRefreshingStatus == STATUS_TOP_PULL_TO_LINGER) {
             fromDegrees = 180f;
             toDegrees = 360f;
-        } else if (currentRefreshingStatus == STATUS_RELEASE_TO_REFRESH) {
+        } else if (currentRefreshingStatus == STATUS_TOP_RELEASE_TO_LINGER) {
             fromDegrees = 0f;
             toDegrees = 180f;
         }
@@ -185,5 +185,11 @@ public class SampleHeaderView implements ISpringView {
             updateAtValue = String.format(context.getResources().getString(R.string.updated_at), value);
         }
         updateAt.setText(updateAtValue);
+    }
+
+
+    @Override
+    public boolean onRelease(ViewGroup springView) {
+        return false;
     }
 }
