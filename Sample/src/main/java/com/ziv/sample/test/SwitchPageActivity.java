@@ -31,8 +31,10 @@ public class SwitchPageActivity extends AppCompatActivity {
          //two = (SpringContainer) LayoutInflater.from(this).inflate(R.layout.page_two, root, false);
 
         one.setFooterView(new ASpring(one));
-        one.setHeaderView(new ASpring(one));
         one.setBottomThreshold(500);
+
+//        two.setHeaderView(new ASpring(two));
+//        two.setTopThreshold(500);
 
     }
 
