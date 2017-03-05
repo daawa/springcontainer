@@ -2,6 +2,7 @@ package com.ziv.sample.test;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,9 +32,7 @@ public class SwitchPageActivity extends AppCompatActivity {
 
         one.setFooterView(new ASpring(one));
         one.setHeaderView(new ASpring(one));
-
-//        two.setFooterView(new ASpring(two));
-//        two.setHeaderView(new ASpring(two));
+        one.setBottomThreshold(500);
 
     }
 
@@ -52,6 +51,7 @@ public class SwitchPageActivity extends AppCompatActivity {
             hint.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             hint.setGravity(Gravity.CENTER);
             hint.setText("~~~~~~~\n~~~~~~~~");
+            hint.setTextSize(TypedValue.COMPLEX_UNIT_DIP,42);
             return hint;
         }
 
@@ -62,28 +62,29 @@ public class SwitchPageActivity extends AppCompatActivity {
 
         @Override
         public void onStateChanged(int old, int current) {
+            if(current == SpringContainer.STATUS_BOTTOM_RELEASE_TO_LINGER){
+                hint.setText("release to switch page");
+            } else {
+                hint.setText("~~~~~~~\n~~~~~~~~");
+            }
 
         }
 
         @Override
         public void onHeightChanged(int cur) {
-            if(cur > 300){
-                hint.setText("release to switch page");
-            } else {
-                hint.setText("~~~~~~~\n~~~~~~~~");
-            }
+
         }
 
         @Override
         public boolean onRelease(ViewGroup springView) {
-            if(springView.getHeight() >= 700){
+            if(container.getBottomState() == SpringContainer.STATUS_BOTTOM_RELEASE_TO_LINGER){
                 two.setVisibility(View.VISIBLE);
                 TranslateAnimation aone = new TranslateAnimation(
                         TranslateAnimation.RELATIVE_TO_PARENT,0,
                         TranslateAnimation.RELATIVE_TO_PARENT,0,
                         TranslateAnimation.RELATIVE_TO_PARENT,0,
                         TranslateAnimation.RELATIVE_TO_PARENT,-1);
-                aone.setDuration(1000);
+                aone.setDuration(500);
 
                 aone.setAnimationListener(new Animation.AnimationListener() {
                     @Override
@@ -107,23 +108,7 @@ public class SwitchPageActivity extends AppCompatActivity {
                         TranslateAnimation.RELATIVE_TO_PARENT,0,
                         TranslateAnimation.RELATIVE_TO_PARENT,1,
                         TranslateAnimation.RELATIVE_TO_PARENT,0);
-                atwo.setDuration(1000);
-//                atwo.setAnimationListener(new Animation.AnimationListener() {
-//                    @Override
-//                    public void onAnimationStart(Animation animation) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onAnimationEnd(Animation animation) {
-//                        two.setVisibility(View.GONE);
-//                    }
-//
-//                    @Override
-//                    public void onAnimationRepeat(Animation animation) {
-//
-//                    }
-//                });
+                atwo.setDuration(500);
 
                 one.startAnimation(aone);
                 two.startAnimation(atwo);

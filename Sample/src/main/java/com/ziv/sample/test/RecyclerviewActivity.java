@@ -32,14 +32,14 @@ public class RecyclerViewActivity extends AppCompatActivity {
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                spring.setState(SpringContainer.STATUS_TOP_LINGERING);
+                spring.setTopState(SpringContainer.STATUS_TOP_LINGERING);
             }
         });
         View load = findViewById(R.id.load_btn);
         load.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                spring.setState(SpringContainer.STATUS_BOTTOM_LINGERING);
+                spring.setBottomState(SpringContainer.STATUS_BOTTOM_LINGERING);
             }
         });
         spring = (SpringContainer) findViewById(R.id.refreshable_view);
