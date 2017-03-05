@@ -43,7 +43,12 @@ SpringContainer also supports changing states through code.
 
 In the following demo, clicking ***refresh*** button makes SpringContainer transfer to **REFRESHING** state, and clicking ***load***, make it transfer to **LOADING**
 
-![support-set-state](https://raw.githubusercontent.com/ziv-zh/notes/master/files/sringcontainer0.gif)  
+![support-set-state](https://raw.githubusercontent.com/ziv-zh/notes/master/files/sringcontainer0.gif) 
+
+
+If you wanna implement vetical page-switching , it is also easy. All the work you should do is provide you translation animation and a `ISpringView`, and you can turn to the `PageSwitchActivity` demo in the sample code.
+
+![](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springdemo_page_switch.gif)  
 
 
 <br/><br/><br/>
@@ -59,7 +64,7 @@ In the following demo, clicking ***refresh*** button makes SpringContainer trans
 	<dependency>
   		<groupId>com.ziv.lib</groupId>
   		<artifactId>SpringContainer</artifactId>
-  		<version>0.2.2</version>
+  		<version>0.3.0</version>
   		<type>pom</type>
 	</dependency>
 
@@ -112,6 +117,13 @@ Add it in your root build.gradle at the end of repositories:
 	     * @param cur  current height of SpringContainer's headerContainer
 	     */
 	    void onHeightChanged(int cur);
+		
+		/**
+     		* invoked when user's finger is released from the SpringContainer
+     		* @param springView
+    		* @return true if you deal with {@param springView} yourself, else the SpringContainer will animate the {@param springView} to being gone.
+     	*/
+    	boolean onRelease(ViewGroup springView);
     
 	}
 

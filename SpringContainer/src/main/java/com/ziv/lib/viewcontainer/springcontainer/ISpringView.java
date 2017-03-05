@@ -36,7 +36,11 @@ public interface ISpringView {
      * @param cur  current height of SpringContainer's headerContainer
      */
     void onHeightChanged(int cur);
-    //void onRefreshFinished();
 
+    /**
+     * invoked when user's finger is released from the SpringContainer
+     * @param springView
+     * @return true if you deal with {@param springView} yourself, else the SpringContainer will animate the {@param springView} to being gone.
+     */
     boolean onRelease(ViewGroup springView);
 }
