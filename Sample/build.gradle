@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
@@ -28,7 +32,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:23.0.0'
-    compile project(":SpringContainer")
-    //compile 'com.ziv.lib:SpringContainer:0.2.0'
+    //compile project(":SpringContainer")
+    compile 'com.github.ziv-zh:springcontainer:0.3.0'
     testCompile 'junit:junit:4.12'
 }

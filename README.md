@@ -41,12 +41,12 @@ SpringContainer supports **multi-touch**, you can use different fingers to **con
 
 SpringContainer also supports changing states through code.
 
-In the following demo, clicking ***refresh*** button makes SpringContainer transfer to **REFRESHING** state, and clicking ***load***, make it transfer to **LOADING**
+In the following demo, clicking ***refresh*** button makes SpringContainer transfer to **REFRESHING** state, and clicking ***load***, makes it transfer to **LOADING**
 
 ![support-set-state](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springcontainer_set-state.gif) 
 
 
-If you wanna implement vetical page-switching , it is also easy. All the work you should do is provide you translation animation and a `ISpringView`, and you can turn to the `PageSwitchActivity` demo in the sample code.
+If you wanna implement vetical page-switching , it is also easy. All the work you should do is provide your translation animation and an `ISpringView`, and you can turn to the `PageSwitchActivity` demo in the sample code for a guide.
 
 ![](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springdemo_page_switch.gif)  
 
