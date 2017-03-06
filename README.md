@@ -71,7 +71,7 @@ If you wanna implement vetical page-switching , it is also easy. All the work yo
 
 ### 2. for gradle:
 
-	compile 'com.ziv.lib:SpringContainer:0.2.2'
+	compile 'com.ziv.lib:SpringContainer:0.3.0'
 	
 
 If you use JitPack repository,
