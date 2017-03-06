@@ -62,20 +62,19 @@ If you wanna implement vetical page-switching , it is also easy. All the work yo
 	
 
 	<dependency>
-  		<groupId>com.ziv.lib</groupId>
-  		<artifactId>SpringContainer</artifactId>
-  		<version>0.3.0</version>
-  		<type>pom</type>
+	    <groupId>com.github.ziv-zh</groupId>
+	    <artifactId>springcontainer</artifactId>
+	    <version>0.3.0</version>
 	</dependency>
 
 
 ### 2. for gradle:
 
-	compile 'com.ziv.lib:SpringContainer:0.3.0'
+	compile 'com.github.ziv-zh:springcontainer:0.3.0'
 	
 
-If you use JitPack repository,
-Add it in your root build.gradle at the end of repositories:
+Add JitPack repository:
+for gradle,add it in your root build.gradle at the end of repositories:
 
 	allprojects {
 		repositories {
