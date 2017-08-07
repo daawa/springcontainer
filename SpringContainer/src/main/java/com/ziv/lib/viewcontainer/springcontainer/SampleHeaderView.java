@@ -119,6 +119,15 @@ public class SampleHeaderView implements ISpringView {
                 progressBar.setVisibility(View.VISIBLE);
                 arrow.clearAnimation();
                 arrow.setVisibility(View.GONE);
+            } else if(currentRefreshingStatus == STATUS_TOP_LINGER_FINISHED && lastRefreshingStatus == STATUS_TOP_LINGERING){
+                // there is 3000 milliseconds between
+                progressBar.setVisibility(View.INVISIBLE);
+                progressBar.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
+                },2000);
             }
             refreshUpdatedAtValue();
 

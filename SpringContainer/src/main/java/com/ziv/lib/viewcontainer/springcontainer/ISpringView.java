@@ -31,6 +31,7 @@ public interface ISpringView {
      */
     void onStateChanged(int old, int current);
 
+
     /**
      * when the height of SpringContainer's headerContainer changed, this method would be called
      * @param cur  current height of SpringContainer's headerContainer

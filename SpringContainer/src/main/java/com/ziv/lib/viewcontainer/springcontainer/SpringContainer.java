@@ -13,6 +13,7 @@ import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 //import android.util.Log;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,8 +43,8 @@ public class SpringContainer extends FrameLayout {
     private boolean mSpringEnabled = true;
 
     public static final int STATUS_TOP_PULL_TO_LINGER = 0;// pulling
-    public static final int STATUS_TOP_LINGERING = 1;
-    public static final int STATUS_TOP_RELEASE_TO_LINGER = 2;
+    public static final int STATUS_TOP_RELEASE_TO_LINGER = 1;
+    public static final int STATUS_TOP_LINGERING = 2;
     public static final int STATUS_TOP_LINGER_FINISHED = 3;
     public static final int STATUS_TOP_LINGER_CANCELED = 4;
 
@@ -459,7 +460,7 @@ public class SpringContainer extends FrameLayout {
             default: {
                 if (mAble2PullWhenTouchDown) {
                     if (!headerView.onRelease(headerContainer)) {
-                        hideHeader = createHideHeaderAnimaton();
+                        hideHeader = createHideHeaderAnimation();
                         hideHeader.start();
                     }
                 }
@@ -520,21 +521,6 @@ public class SpringContainer extends FrameLayout {
         }
         headerContainer.setLayoutParams(headerLayoutParams);
         headerView.onHeightChanged(headerLayoutParams.height);
-
-        /*if (headerBackground != null) {
-            headerBackground.setPivotY(0);
-            headerBackground.setPivotX(headerBackground.getHeight() / 2);
-
-            float scale = headerBackground.getScaleY();
-            scale += distance / (float) TopThreshold;
-            if (scale > 2)
-                scale = 2;
-            else if (scale < 1)
-                scale = 1;
-
-            headerBackground.setScaleX(scale);
-            headerBackground.setScaleY(scale);
-        }*/
 
         int old = currentTopStatus;
         if (currentTopStatus == STATUS_TOP_LINGERING && headerLayoutParams.height < TopThreshold) {
@@ -624,12 +610,45 @@ public class SpringContainer extends FrameLayout {
         isTopLingering = false;
         int old = currentTopStatus;
         currentTopStatus = STATUS_TOP_LINGER_FINISHED;
-        headerView.onStateChanged(old, currentTopStatus);
-        if (mInitialYDown <= 0) {
-            hideHeader = createHideHeaderAnimaton();
-            hideHeader.start();
-        }
+        transferState(headerView, old, currentTopStatus, new Runnable() {
+            @Override
+            public void run() {
+                if (mInitialYDown <= 0) {
+                    hideHeader = createHideHeaderAnimation();
+                    hideHeader.start();
+                }
+            }
+        });
+//        headerView.onStateChanged(old, currentTopStatus);
+//        StateTransferTimeInterval sat = stateTransferTimeIntervals.get(old);
+//        if(sat != null && sat.to == currentTopStatus){
+//            postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    if (mInitialYDown <= 0) {
+//                        hideHeader = createHideHeaderAnimation();
+//                        hideHeader.start();
+//                    }
+//                }
+//            },sat.timeInterval);
+//        } else {
+//            if (mInitialYDown <= 0) {
+//                hideHeader = createHideHeaderAnimation();
+//                hideHeader.start();
+//            }
+//        }
 
+
+    }
+
+    private void transferState(ISpringView springView, int fromState , int toState, Runnable afterTransfer){
+        springView.onStateChanged(fromState, toState);
+        StateTransferTimeInterval sat = stateTransferTimeIntervals.get(fromState);
+        if(sat != null && sat.to == toState && afterTransfer != null){
+            postDelayed(afterTransfer, sat.timeInterval);
+        } else {
+            afterTransfer.run();
+        }
     }
 
     /**
@@ -719,7 +738,7 @@ public class SpringContainer extends FrameLayout {
     }
 
 
-    protected Animator createHideHeaderAnimaton() {
+    protected Animator createHideHeaderAnimation() {
 
         if (hideHeader != null) {
             hideHeader.cancel();
@@ -739,24 +758,51 @@ public class SpringContainer extends FrameLayout {
                         return;
                     }
 
-//                    if (headerBackground != null) {
-//                        headerBackground.setScaleX(1);
-//                        headerBackground.setScaleY(1);
-//                    }
-
                     if (currentTopStatus != STATUS_TOP_LINGERING) {
                         int old = currentTopStatus;
                         currentTopStatus = STATUS_TOP_LINGERING;
-                        headerView.onStateChanged(old, currentTopStatus);
-                        if (mRefreshAction != null) {
-                            if (!isTopLingering) {
-                                isTopLingering = true;
-                                mRefreshAction.onRefreshing(SpringContainer.this);
-                            }
+                        transferState(headerView, old, currentTopStatus, new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mRefreshAction != null) {
+                                    if (!isTopLingering) {
+                                        isTopLingering = true;
+                                        mRefreshAction.onRefreshing(SpringContainer.this);
+                                    }
 
-                        } else {
-                            SpringContainer.this.finishTopLingering();
-                        }
+                                } else {
+                                    SpringContainer.this.finishTopLingering();
+                                }
+                            }
+                        });
+//                        headerView.onStateChanged(old, currentTopStatus);
+//                        StateTransferTimeInterval sat = stateTransferTimeIntervals.get(old);
+//                        if(sat != null && sat.to == currentBottomStatus){
+//                            postDelayed(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    if (mRefreshAction != null) {
+//                                        if (!isTopLingering) {
+//                                            isTopLingering = true;
+//                                            mRefreshAction.onRefreshing(SpringContainer.this);
+//                                        }
+//
+//                                    } else {
+//                                        SpringContainer.this.finishTopLingering();
+//                                    }
+//                                }
+//                            },sat.timeInterval);
+//                        } else {
+//                            if (mRefreshAction != null) {
+//                                if (!isTopLingering) {
+//                                    isTopLingering = true;
+//                                    mRefreshAction.onRefreshing(SpringContainer.this);
+//                                }
+//
+//                            } else {
+//                                SpringContainer.this.finishTopLingering();
+//                            }
+//                        }
                     }
                 }
 
@@ -1020,6 +1066,31 @@ public class SpringContainer extends FrameLayout {
 
     public int getBottomState(){
         return currentBottomStatus;
+    }
+
+    /**
+     * fromState and toState must be adjacent
+     * @param fromState
+     * @param toState
+     * @param timeInterval
+     */
+    public void setStateTransferTimeIntervale(int fromState, int toState, long timeInterval){
+//        if((fromState + 1) != toState){
+//            return;
+//        }
+        StateTransferTimeInterval o = new StateTransferTimeInterval();
+        o.from = fromState;
+        o.to = toState;
+        o.timeInterval = timeInterval;
+        stateTransferTimeIntervals.put(fromState,o);
+    }
+
+    private SparseArray<StateTransferTimeInterval> stateTransferTimeIntervals = new SparseArray<>(5);
+
+    class StateTransferTimeInterval{
+        int from;
+        int to;
+        long timeInterval;
     }
 }
 
