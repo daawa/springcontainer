@@ -351,6 +351,10 @@ public class SpringContainer extends FrameLayout {
 
     }
 
+    //when spring container is not able to pull or push, delay the detecting during touch-move for 3 times
+    private int moveCounting = 0;
+    private int delayCount = 3;
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
 
@@ -363,6 +367,7 @@ public class SpringContainer extends FrameLayout {
         int distanceY = 0, distanceX = 0;
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
+                moveCounting = 0;
                 mScrollPointerId = MotionEventCompat.getPointerId(event, 0);
                 mInitialYDown = (int) curY;
                 mInitialXDown = (int) curX;
@@ -391,10 +396,14 @@ public class SpringContainer extends FrameLayout {
 
             case MotionEvent.ACTION_MOVE: {
                 stopHeaderFooterAnim();
-                boolean interceptedPull = false;
-                //boolean fakeDown = false;
-                boolean interceptedPush = false;
-
+                if(!mAble2PullWhenTouchDown && !mAble2PushWhenTouchDown){
+                    if(moveCounting < delayCount){
+                        moveCounting ++;
+                        break;
+                    } else {
+                        moveCounting = 0;
+                    }
+                }
                 final int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
                 if (index < 0) {
                     return false;
@@ -416,9 +425,6 @@ public class SpringContainer extends FrameLayout {
                     mAble2PullWhenTouchDown = tmpAblePull;//isAble2PullNow(curX, curY);
                     if (mAble2PullWhenTouchDown) {
                         mInitialYDown = (int) curY;
-                        interceptedPull = true;
-                    } else {
-                        //fakeDown = true;
                     }
                 }
 
@@ -427,44 +433,25 @@ public class SpringContainer extends FrameLayout {
                     mAble2PushWhenTouchDown = tmpAblePush;//isAble2PushNow(curX, curY);
                     if (mAble2PushWhenTouchDown) {
                         mInitialYDown = (int) curY;
-                        interceptedPush = true;
-                    } else {
-                        //fakeDown = true;
                     }
                 }
 
                 if (mAble2PullWhenTouchDown || mAble2PushWhenTouchDown) {
 
                     boolean consumed = false;
-                    //boolean fakeCancel = false;
                     if (mAble2PullWhenTouchDown) {
                         consumed = consumed || updateHeaderLayout(distanceY);
-                        //fakeCancel = consumed && interceptedPull;
                     }
                     if (mAble2PushWhenTouchDown) {
                         consumed = consumed || updateFooterLayout(-distanceY);
-                        //fakeCancel = fakeCancel || (consumed && interceptedPush);
                     }
                     mEverConsumedMoveEvent = consumed || mEverConsumedMoveEvent;
 
-//                    if (fakeCancel) {
-//                        MotionEvent cancelEvent = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_CANCEL/*MotionEvent.ACTION_UP*/, event.getX(), event.getY(), 0);
-//                        if (pTarget != null)
-//                            pTarget.dispatchTouchEvent(cancelEvent);
-//                        return true;
-//                    } else
                     if (consumed) {
                         return true;
                     }
                 }
 
-//                else if (fakeDown) {
-//                    MotionEvent downEvent = MotionEvent.obtain(event.getDownTime(), event.getEventTime(), MotionEvent.ACTION_DOWN, event.getX(), event.getY(), 0);
-////                    if (pTarget != null)
-////                        pTarget.dispatchTouchEvent(newEv);
-//                    super.dispatchTouchEvent(downEvent);
-//                    return true;
-//                }
                 break;
             }
 
@@ -502,73 +489,6 @@ public class SpringContainer extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        /*
-        final int action = MotionEventCompat.getActionMasked(event);
-        final int actionIndex = MotionEventCompat.getActionIndex(event);
-
-        boolean able2pull = mSpringEnabled && (isAbleToPull() || headerContainer.getHeight() > 0);
-        boolean able2push = mSpringEnabled && (isAbleToPush() || footerContainer.getHeight() > 0);
-        if (able2pull || able2push) {
-            int distance = 0;
-            switch (action) {
-                case MotionEvent.ACTION_DOWN: {
-                    mScrollPointerId = MotionEventCompat.getPointerId(event, 0);
-                    mInitialYDown = (int) (event.getY() + 0.5f);
-                }
-                break;
-
-                case MotionEventCompat.ACTION_POINTER_DOWN: {
-                    mScrollPointerId = MotionEventCompat.getPointerId(event, actionIndex);
-                    mInitialYDown = (int) (MotionEventCompat.getY(event, actionIndex) + 0.5f);
-                }
-                break;
-
-                case MotionEventCompat.ACTION_POINTER_UP: {
-                    onPointerUp(event);
-                }
-                break;
-
-                case MotionEvent.ACTION_MOVE: {
-                    int index = MotionEventCompat.findPointerIndex(event, mScrollPointerId);
-                    if (index < 0) {
-                        Log.e(TAG, "Error processing SpringContainer; pointer index for id " +
-                                mScrollPointerId + " not found. Did any MotionEvents get skipped?");
-                        return false;
-                    }
-                    int yMove = (int) (MotionEventCompat.getY(event, index) + 0.5f);
-                    distance = (yMove - mInitialYDown);
-
-                    if (able2pull) {
-                        // 如果手指是上滑状态，并且下拉刷新view是完全隐藏的，就屏蔽下拉事件
-                        if ((distance <= 0 && headerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop)) {
-
-                        } else {
-                            mInitialYDown = yMove;
-                            return true;
-                        }
-                    }
-
-                    if (able2push) {
-                        distance = -distance;
-                        if ((distance <= 0 && footerLayoutParams.height <= 0) || (distance > 0 && distance < touchSlop)) {
-
-                        } else {
-                            mInitialYDown = yMove;
-                            return true;
-                        }
-                    }
-                }
-
-                break;
-
-                default:
-                    mInitialYDown = 0;
-                    break;
-            }
-
-        }
-        */
-
         return super.onInterceptTouchEvent(event);
     }
 
@@ -743,11 +663,12 @@ public class SpringContainer extends FrameLayout {
         if (pTarget != null) {
             v = pTarget;
         } else {
-            getTargetChild(x, y);
+            v = getTargetChild(x, y);
         }
 
         if (v != null) {
-            return isAbleToPull(verticalScrollHelperWeakHashMap.get(v));
+            return ( headerLayoutParams == null? false:headerLayoutParams.height > 0)
+                    || isAbleToPull(verticalScrollHelperWeakHashMap.get(v));
         }
 
         return true;
@@ -771,10 +692,10 @@ public class SpringContainer extends FrameLayout {
         if (pTarget != null) {
             v = pTarget;
         } else {
-            getTargetChild(x, y);
+            v = getTargetChild(x, y);
         }
         if (v != null) {
-            return isAbleToPush(verticalScrollHelperWeakHashMap.get(v));
+            return (footerLayoutParams == null? false : footerLayoutParams.height > 0) || isAbleToPush(verticalScrollHelperWeakHashMap.get(v));
         }
 
         return true;
