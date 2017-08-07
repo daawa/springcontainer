@@ -43,7 +43,6 @@ public class RecyclerViewActivity extends AppCompatActivity {
             }
         });
         spring = (SpringContainer) findViewById(R.id.refreshable_view);
-        spring.setStateTransferTimeIntervale(SpringContainer.STATUS_TOP_LINGERING, SpringContainer.STATUS_TOP_LINGER_FINISHED, 3000);
         recyclerView = (RecyclerView) findViewById(R.id.list_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new ItemAdapter());
