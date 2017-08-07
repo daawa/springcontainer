@@ -5,7 +5,7 @@
     android:background="@android:color/darker_gray"
     android:layout_height="match_parent">
 
-    <com.ziv.lib.viewcontainer.springcontainer.SpringContainer
+    <com.github.daawa.lib.viewcontainer.springcontainer.SpringContainer
         android:background="@android:color/white"
         android:id="@+id/page_two"
         android:layout_width="match_parent"
@@ -19,9 +19,9 @@
             android:text="Page B\nPage B\nPage B\nPage B\nPage B\nPage B"
             android:textSize="56dp" />
 
-    </com.ziv.lib.viewcontainer.springcontainer.SpringContainer>
+    </com.github.daawa.lib.viewcontainer.springcontainer.SpringContainer>
 
-    <com.ziv.lib.viewcontainer.springcontainer.SpringContainer
+    <com.github.daawa.lib.viewcontainer.springcontainer.SpringContainer
         android:background="@android:color/holo_blue_light"
         android:id="@+id/page_one"
         android:layout_width="match_parent"
@@ -35,6 +35,6 @@
             android:text="Page A\nPage A\nPage A\nPage "
             android:textSize="56dp" />
 
-    </com.ziv.lib.viewcontainer.springcontainer.SpringContainer>
+    </com.github.daawa.lib.viewcontainer.springcontainer.SpringContainer>
 
 </FrameLayout>

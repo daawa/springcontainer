@@ -14,19 +14,19 @@ ext {
     bintrayRepo = 'maven'
     bintrayName = 'springcontainer'
 
-    publishedGroupId = 'com.ziv.lib'
+    publishedGroupId = 'com.github.daawa.lib'
     libraryName = 'SpringContainer'
     artifact = 'SpringContainer'
 
     libraryDescription = ' An Android view contianer that supports overscrolling on both top and bottom'
 
-    siteUrl = 'https://github.com/ziv-zh/springcontainer'
-    gitUrl = 'https://github.com/ziv-zh/springcontainer.git'
+    siteUrl = 'https://github.com/daawa/springcontainer'
+    gitUrl = 'https://github.com/daawa/springcontainer.git'
 
-    libraryVersion = '0.2.2'
+    libraryVersion = '0.3.1'
 
-    developerId = 'ziv-zh'
-    developerName = 'ziv zhang'
+    developerId = 'daawa'
+    developerName = 'daawa'
     developerEmail = 'mayzzw@126.com'
 
     licenseName = 'The Apache Software License, Version 2.0'
