@@ -14,7 +14,7 @@ buildscript {
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
 
-        classpath ('com.android.tools.build:gradle:2.2.3'){force = true}
+        classpath ('com.android.tools.build:gradle:2.3.3'){force = true}
 
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
@@ -35,7 +35,7 @@ allprojects {
     }
 
     group = 'com.ziv.lib'
-    version = '0.2.2'
+    version = '0.3.0'
 }
 
 task clean(type: Delete) {

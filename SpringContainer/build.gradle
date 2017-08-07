@@ -36,12 +36,12 @@ ext {
 
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 25
+    buildToolsVersion "26.0.0"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
 
@@ -85,16 +85,17 @@ dependencies {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:23.4.0'
-    compile 'com.android.support:recyclerview-v7:23.+'
+    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:recyclerview-v7:25.3.1'
 }
+
 dependencies {
-    compile 'com.android.support:appcompat-v7:23.+'
+    compile 'com.android.support:appcompat-v7:25.3.1'
 }
 
 // Place it at the end of the file
-apply from: 'https://raw.githubusercontent.com/ziv-zh/notes/master/files/install.gradle'
-apply from: 'https://raw.githubusercontent.com/ziv-zh/notes/master/files/bintray.gradle'
+//apply from: 'https://raw.githubusercontent.com/ziv-zh/notes/master/files/install.gradle'
+//apply from: 'https://raw.githubusercontent.com/ziv-zh/notes/master/files/bintray.gradle'
 
 
 
