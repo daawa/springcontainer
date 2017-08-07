@@ -87,9 +87,17 @@ public class SampleHeaderView implements ISpringView {
     }
 
     @Override
-    public void onStateChanged(int old, int state) {
+    public void onStateChanged(int old, int state, Runnable afterAction) {
         currentRefreshingStatus = state;
-        updateHeaderView();
+        if(afterAction == null){
+            afterAction = new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            };
+        }
+        updateHeaderView(afterAction);
 
         if(old == STATUS_TOP_LINGERING){
             preferences.edit().putLong(KEY_UPDATED_AT + mId4UpdateTime, System.currentTimeMillis()).commit();
@@ -102,23 +110,26 @@ public class SampleHeaderView implements ISpringView {
     }
 
 
-    private void updateHeaderView() {
+    private void updateHeaderView(final Runnable afterAction) {
         if (lastRefreshingStatus != currentRefreshingStatus) {
             if (currentRefreshingStatus == STATUS_TOP_PULL_TO_LINGER) {
                 description.setText(PULL_TO_RELEASE_TIP);
                 arrow.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
                 rotateArrow();
+                afterAction.run();
             } else if (currentRefreshingStatus == STATUS_TOP_RELEASE_TO_LINGER) {
                 description.setText(RELEASE_TO_REFRESH_TIP);
                 arrow.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
                 rotateArrow();
+                afterAction.run();
             } else if (currentRefreshingStatus == STATUS_TOP_LINGERING) {
                 description.setText(REFRESHING_TIP);
                 progressBar.setVisibility(View.VISIBLE);
                 arrow.clearAnimation();
                 arrow.setVisibility(View.GONE);
+                afterAction.run();
             } else if(currentRefreshingStatus == STATUS_TOP_LINGER_FINISHED && lastRefreshingStatus == STATUS_TOP_LINGERING){
                 // there is 3000 milliseconds between
                 progressBar.setVisibility(View.INVISIBLE);
@@ -126,6 +137,7 @@ public class SampleHeaderView implements ISpringView {
                     @Override
                     public void run() {
                         progressBar.setVisibility(View.VISIBLE);
+                        afterAction.run();
                     }
                 },2000);
             }

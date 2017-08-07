@@ -29,7 +29,7 @@ public interface ISpringView {
      * @param old
      * @param current
      */
-    void onStateChanged(int old, int current);
+    void onStateChanged(int old, int current, Runnable afterTransferAction);
 
 
     /**

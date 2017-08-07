@@ -40,7 +40,7 @@ public class SampleFooterView implements ISpringView {
     }
 
     @Override
-    public void onStateChanged(int old, int state) {
+    public void onStateChanged(int old, int state, Runnable after) {
         currentLoadingStatus = state;
         updateFooterView();
     }

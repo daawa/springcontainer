@@ -63,7 +63,7 @@ public class SwitchPageActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onStateChanged(int old, int current) {
+        public void onStateChanged(int old, int current, Runnable runnable) {
             if(current == SpringContainer.STATUS_BOTTOM_RELEASE_TO_LINGER){
                 hint.setText("release to switch page");
             } else {
