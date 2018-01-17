@@ -12,25 +12,26 @@ public interface ISpringView {
 
     /**
      * create a custom view to be displayed on top or bottom of SpringContainer, which can be updated or animated at different state
-     * @param springView SpringContainer's headerContainer or footerContainer
+     * @param springViewParent SpringContainer's headerContainer or footerContainer
      * @return a view
      */
-    View onCreateSpringView(ViewGroup springView);
+    View onCreateSpringView(ViewGroup springViewParent);
 
     /**
      * @deprecated just return null is ok
-     * @param springView SpringContainer's headerContainer or footerContainer
+     * @param springViewParent SpringContainer's headerContainer or footerContainer
      * @return background view for view returned by {@link #onCreateSpringView(ViewGroup) onCreateSpringView()}
      */
-    View onCreateSpringViewBackground(ViewGroup springView);
+    View onCreateSpringViewBackground(ViewGroup springViewParent);
 
     /**
      * when the state of SpringContainer changed, this method would be called.
-     * @param old
-     * @param current
-     * @param afterTransferAction  once the transformation is done， call the {@param afterTransferAction} so as to make SpringContainer work well.
+     * springView's transformation can be performed here.
+     * @param old old state
+     * @param current new state
+     * @param postTransformAction  once the transformation is done， call the {@param postTransformAction} so as to make SpringContainer work well.
      */
-    void onStateChanged(int old, int current, Runnable afterTransferAction);
+    void onStateChanged(int old, int current, Runnable postTransformAction);
 
 
     /**

@@ -73,6 +73,12 @@ public class SpringContainer extends FrameLayout {
     private int BottomThreshold = 240;
 
     private int mReboundBaseTime = 300;
+    private Runnable EmptyAction = new Runnable() {
+        @Override
+        public void run() {
+
+        }
+    };
 
     /**
      * headerContainer view
@@ -137,7 +143,7 @@ public class SpringContainer extends FrameLayout {
             }
 
             @Override
-            public void onStateChanged(int old, int state, Runnable runnable) {
+            public void onStateChanged(int old, int state, Runnable postTransformAction) {
 
             }
 
@@ -164,7 +170,7 @@ public class SpringContainer extends FrameLayout {
             }
 
             @Override
-            public void onStateChanged(int old, int state, Runnable runnable) {
+            public void onStateChanged(int old, int state, Runnable postTransformAction) {
 
             }
 
@@ -187,11 +193,11 @@ public class SpringContainer extends FrameLayout {
         }
 
         LayoutInflater.from(context).inflate(R.layout.springcontainer_header_container, this, true);
-        headerContainer = (ViewGroup) findViewById(R.id.spring_container_header);
+        headerContainer = findViewById(R.id.spring_container_header);
         headerLayoutParams = headerContainer.getLayoutParams();
 
         LayoutInflater.from(context).inflate(R.layout.springcontainer_footer_container, this, true);
-        footerContainer = (ViewGroup) findViewById(R.id.spring_container_footer);
+        footerContainer = findViewById(R.id.spring_container_footer);
         footerLayoutParams = footerContainer.getLayoutParams();
 
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
@@ -228,7 +234,7 @@ public class SpringContainer extends FrameLayout {
         if (v != null && v.getParent() == null) {
             headerContainer.addView(v);
         } else if (v != null && v.getParent() != headerContainer) {
-            throw new RuntimeException("headerView has been attatched to another parent");
+            throw new RuntimeException("headerView has been attached to another parent");
         }
     }
 
@@ -239,14 +245,14 @@ public class SpringContainer extends FrameLayout {
         if (v != null && v.getParent() == null) {
             footerContainer.addView(v);
         } else if (v != null && v.getParent() != footerContainer) {
-            throw new RuntimeException("footerView has been attatched to another parent");
+            throw new RuntimeException("footerView has been attached to another parent");
         }
 
         v = footerView.onCreateSpringView(footerContainer);
         if (v != null && v.getParent() == null) {
             footerContainer.addView(v);
         } else if (v != null && v.getParent() != footerContainer) {
-            throw new RuntimeException("footerView has been attatched to another parent");
+            throw new RuntimeException("footerView has been attached to another parent");
         }
     }
 
@@ -526,7 +532,7 @@ public class SpringContainer extends FrameLayout {
         int old = currentTopStatus;
         if (currentTopStatus == STATUS_TOP_LINGERING && headerLayoutParams.height < TopThreshold) {
             currentTopStatus = STATUS_TOP_LINGER_CANCELED;
-            headerView.onStateChanged(old, currentTopStatus, null);
+            transferState(headerView, old, currentTopStatus, EmptyAction);
         }
         if (currentTopStatus != STATUS_TOP_LINGERING) {
             if (headerLayoutParams.height >= TopThreshold) {
@@ -534,7 +540,7 @@ public class SpringContainer extends FrameLayout {
             } else {
                 currentTopStatus = STATUS_TOP_PULL_TO_LINGER;
             }
-            headerView.onStateChanged(old, currentTopStatus, null);
+            transferState(headerView, old, currentTopStatus, EmptyAction);
         }
 
         return true;
@@ -559,7 +565,7 @@ public class SpringContainer extends FrameLayout {
         int old = currentBottomStatus;
         if (currentBottomStatus == STATUS_BOTTOM_LINGERING && footerLayoutParams.height < BottomThreshold) {
             currentBottomStatus = STATUS_BOTTOM_LINGER_CANCELED;
-            footerView.onStateChanged(old, currentBottomStatus, null);
+            transferState(footerView, old, currentBottomStatus, EmptyAction);
         }
         if (currentBottomStatus != STATUS_BOTTOM_LINGERING) {
             if (footerLayoutParams.height >= BottomThreshold) {
@@ -567,7 +573,7 @@ public class SpringContainer extends FrameLayout {
             } else {
                 currentBottomStatus = STATUS_BOTTOM_DRAG_TO_LINGER;
             }
-            footerView.onStateChanged(old, currentBottomStatus, null);
+            transferState(footerView, old, currentBottomStatus, EmptyAction);
         }
 
         return true;
@@ -642,23 +648,6 @@ public class SpringContainer extends FrameLayout {
 
     }
 
-    private void transferState(ISpringView springView, int fromState, int toState, Runnable afterTransfer) {
-
-
-        StateTransferTimeInterval sat = stateTransferTimeIntervals.get(fromState);
-
-        if (sat != null && sat.to == toState && afterTransfer != null) {
-            if (sat.timeInterval > 0) {
-                postDelayed(afterTransfer, sat.timeInterval);
-            } else {
-                springView.onStateChanged(fromState, toState, afterTransfer);
-            }
-        } else {
-            springView.onStateChanged(fromState, toState, null);
-            afterTransfer.run();
-        }
-    }
-
     /**
      * notify spring container to change state to {@link #STATUS_BOTTOM_LINGER_FINISHED}
      */
@@ -666,12 +655,30 @@ public class SpringContainer extends FrameLayout {
         isBottomLingering = false;
         int old = currentBottomStatus;
         currentBottomStatus = STATUS_BOTTOM_LINGER_FINISHED;
-        footerView.onStateChanged(old, currentBottomStatus, null);
-        if (mInitialYDown <= 0) {
-            hideFooter = createHideFooterAnimation();
-            hideFooter.start();
+
+        transferState(footerView, old, currentBottomStatus, new Runnable() {
+            @Override
+            public void run() {
+                if (mInitialYDown <= 0) {
+                    hideFooter = createHideFooterAnimation();
+                    hideFooter.start();
+                }
+            }
+        });
+    }
+
+
+    private void transferState(ISpringView springView, int fromState, int toState, Runnable postAction) {
+
+        StateTransferTimeInterval sat = stateTransferTimeIntervals.get(fromState);
+
+        if (sat != null && sat.to == toState) {
+            postDelayed(postAction, sat.timeInterval);
+        } else {
+            springView.onStateChanged(fromState, toState, postAction);
         }
     }
+
 
     private boolean isAbleToPull(IVerticalScrollHelper childScrollHelper) {
         boolean ableToPull = true;
@@ -783,34 +790,6 @@ public class SpringContainer extends FrameLayout {
                                 }
                             }
                         });
-//                        headerView.onStateChanged(old, currentTopStatus);
-//                        StateTransferTimeInterval sat = stateTransferTimeIntervals.get(old);
-//                        if(sat != null && sat.to == currentBottomStatus){
-//                            postDelayed(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    if (mRefreshAction != null) {
-//                                        if (!isTopLingering) {
-//                                            isTopLingering = true;
-//                                            mRefreshAction.onRefreshing(SpringContainer.this);
-//                                        }
-//
-//                                    } else {
-//                                        SpringContainer.this.finishTopLingering();
-//                                    }
-//                                }
-//                            },sat.timeInterval);
-//                        } else {
-//                            if (mRefreshAction != null) {
-//                                if (!isTopLingering) {
-//                                    isTopLingering = true;
-//                                    mRefreshAction.onRefreshing(SpringContainer.this);
-//                                }
-//
-//                            } else {
-//                                SpringContainer.this.finishTopLingering();
-//                            }
-//                        }
                     }
                 }
 
@@ -883,6 +862,21 @@ public class SpringContainer extends FrameLayout {
                     if (currentBottomStatus != STATUS_BOTTOM_LINGERING) {
                         int old = currentBottomStatus;
                         currentBottomStatus = STATUS_BOTTOM_LINGERING;
+                        transferState(footerView, old, currentBottomStatus, new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mDrag2LoadAction != null) {
+                                    if (!isBottomLingering) {
+                                        isBottomLingering = true;
+                                        mDrag2LoadAction.onLoading(SpringContainer.this);
+                                    }
+
+                                } else {
+                                    SpringContainer.this.finishBottomLingering();
+                                }
+                            }
+                        });
+                        /*
                         footerView.onStateChanged(old, currentBottomStatus, null);
                         if (mDrag2LoadAction != null) {
                             if (!isBottomLingering) {
@@ -892,7 +886,7 @@ public class SpringContainer extends FrameLayout {
 
                         } else {
                             SpringContainer.this.finishBottomLingering();
-                        }
+                        }*/
                     }
                 }
 
@@ -1037,7 +1031,7 @@ public class SpringContainer extends FrameLayout {
                 headerView.onHeightChanged(TopThreshold);
                 int old = currentTopStatus;
                 currentTopStatus = STATUS_TOP_LINGERING;
-                headerView.onStateChanged(old, currentTopStatus, new Runnable() {
+                transferState(headerView, old, currentTopStatus, new Runnable() {
                     @Override
                     public void run() {
                         if (mRefreshAction != null) {
@@ -1062,7 +1056,7 @@ public class SpringContainer extends FrameLayout {
                 footerView.onHeightChanged(BottomThreshold);
                 int old = currentBottomStatus;
                 currentBottomStatus = STATUS_BOTTOM_LINGERING;
-                footerView.onStateChanged(old, currentBottomStatus, new Runnable() {
+                transferState(footerView, old, currentBottomStatus, new Runnable() {
                     @Override
                     public void run() {
                         if (mDrag2LoadAction != null) {
@@ -1093,7 +1087,7 @@ public class SpringContainer extends FrameLayout {
      * @param toState
      * @param timeInterval
      */
-    public void setStateTransferTimeIntervale(int fromState, int toState, long timeInterval) {
+    public void setStateTransferTimeInterval(int fromState, int toState, long timeInterval) {
 //        if((fromState + 1) != toState){
 //            return;
 //        }

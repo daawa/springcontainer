@@ -1,8 +1,8 @@
 package com.github.daawa.sample.viewcontainer;
 
 import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -41,9 +41,9 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 spring.setBottomState(SpringContainer.STATUS_BOTTOM_LINGERING);
             }
         });
-        spring = (SpringContainer) findViewById(R.id.refreshable_view);
-        spring.setStateTransferTimeIntervale(SpringContainer.STATUS_TOP_LINGERING, SpringContainer.STATUS_TOP_LINGER_FINISHED, 0);
-        recyclerView = (RecyclerView) findViewById(R.id.list_view);
+        spring = findViewById(R.id.refreshable_view);
+        //spring.setStateTransferTimeInterval(SpringContainer.STATUS_TOP_LINGERING, SpringContainer.STATUS_TOP_LINGER_FINISHED, 0);
+        recyclerView = findViewById(R.id.list_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new ItemAdapter());
         spring.setHeaderView(new SampleHeaderView(this));
@@ -115,8 +115,8 @@ public class RecyclerViewActivity extends AppCompatActivity {
             TextView v2;
             public TextViewHolder(View itemView) {
                 super(itemView);
-                v1 = (TextView)itemView.findViewById(R.id.text1);
-                v2 = (TextView)itemView.findViewById(R.id.text2);
+                v1 = itemView.findViewById(R.id.text1);
+                v2 = itemView.findViewById(R.id.text2);
             }
         }
     }

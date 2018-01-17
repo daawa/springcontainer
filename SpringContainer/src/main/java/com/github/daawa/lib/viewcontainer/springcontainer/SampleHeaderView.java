@@ -2,6 +2,7 @@ package com.github.daawa.lib.viewcontainer.springcontainer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +19,7 @@ import static com.github.daawa.lib.viewcontainer.springcontainer.SpringContainer
 import static com.github.daawa.lib.viewcontainer.springcontainer.SpringContainer.STATUS_TOP_RELEASE_TO_LINGER;
 
 /**
- * Created by ziv-zh on 2016/12/29.
+ * Created by daawa on 2016/12/29.
  */
 
 public class SampleHeaderView implements ISpringView {
@@ -60,23 +61,25 @@ public class SampleHeaderView implements ISpringView {
     private int lastRefreshingStatus = currentRefreshingStatus;
 
     Context context;
-    public SampleHeaderView(Context context){
+
+    public SampleHeaderView(Context context) {
         this.context = context;
         preferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
     }
 
-    public void setTag(String tag){
-        if(tag == null) return;
+    public void setTag(String tag) {
+        if (tag == null) return;
         this.mId4UpdateTime = tag;
     }
+
     @Override
     public View onCreateSpringView(ViewGroup headerContainer) {
-        headerView =  LayoutInflater.from(headerContainer.getContext()).inflate(R.layout.springcontainer_sample_header, headerContainer,false);
+        headerView = LayoutInflater.from(headerContainer.getContext()).inflate(R.layout.springcontainer_sample_header, headerContainer, false);
 
-        progressBar = (ProgressBar) headerView.findViewById(R.id.progress_bar);
-        arrow = (ImageView) headerView.findViewById(R.id.arrow);
-        description = (TextView) headerView.findViewById(R.id.description);
-        updateAt = (TextView) headerView.findViewById(R.id.updated_at);
+        progressBar = headerView.findViewById(R.id.progress_bar);
+        arrow = headerView.findViewById(R.id.arrow);
+        description = headerView.findViewById(R.id.description);
+        updateAt = headerView.findViewById(R.id.updated_at);
 
         return headerView;
     }
@@ -87,19 +90,19 @@ public class SampleHeaderView implements ISpringView {
     }
 
     @Override
-    public void onStateChanged(int old, int state, Runnable afterAction) {
+    public void onStateChanged(int old, int state, Runnable postTransformAction) {
         currentRefreshingStatus = state;
-        if(afterAction == null){
-            afterAction = new Runnable() {
+        if (postTransformAction == null) {
+            postTransformAction = new Runnable() {
                 @Override
                 public void run() {
 
                 }
             };
         }
-        updateHeaderView(afterAction);
+        updateHeaderView(postTransformAction);
 
-        if(old == STATUS_TOP_LINGERING){
+        if (old == STATUS_TOP_LINGERING) {
             preferences.edit().putLong(KEY_UPDATED_AT + mId4UpdateTime, System.currentTimeMillis()).commit();
         }
     }
@@ -110,36 +113,41 @@ public class SampleHeaderView implements ISpringView {
     }
 
 
-    private void updateHeaderView(final Runnable afterAction) {
+    private void updateHeaderView(final Runnable postTransferAction) {
         if (lastRefreshingStatus != currentRefreshingStatus) {
             if (currentRefreshingStatus == STATUS_TOP_PULL_TO_LINGER) {
                 description.setText(PULL_TO_RELEASE_TIP);
                 arrow.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
                 rotateArrow();
-                afterAction.run();
+                postTransferAction.run();
             } else if (currentRefreshingStatus == STATUS_TOP_RELEASE_TO_LINGER) {
                 description.setText(RELEASE_TO_REFRESH_TIP);
                 arrow.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
                 rotateArrow();
-                afterAction.run();
+                postTransferAction.run();
             } else if (currentRefreshingStatus == STATUS_TOP_LINGERING) {
                 description.setText(REFRESHING_TIP);
                 progressBar.setVisibility(View.VISIBLE);
                 arrow.clearAnimation();
                 arrow.setVisibility(View.GONE);
-                afterAction.run();
-            } else if(currentRefreshingStatus == STATUS_TOP_LINGER_FINISHED && lastRefreshingStatus == STATUS_TOP_LINGERING){
+                postTransferAction.run();
+            } else if (currentRefreshingStatus == STATUS_TOP_LINGER_FINISHED && lastRefreshingStatus == STATUS_TOP_LINGERING) {
                 // there is 3000 milliseconds between
-                progressBar.setVisibility(View.INVISIBLE);
+                //progressBar.setVisibility(View.INVISIBLE);
+                progressBar.setSecondaryProgress(40);
+                progressBar.setBackgroundColor(Color.CYAN);
+                description.setText("HOLDING...");
                 progressBar.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        progressBar.setVisibility(View.VISIBLE);
-                        afterAction.run();
+                        //progressBar.setVisibility(View.VISIBLE);
+                        progressBar.setBackgroundColor(Color.TRANSPARENT);
+                        description.setText("shrinking...");
+                        postTransferAction.run();
                     }
-                },2000);
+                }, 2000);
             }
             refreshUpdatedAtValue();
 

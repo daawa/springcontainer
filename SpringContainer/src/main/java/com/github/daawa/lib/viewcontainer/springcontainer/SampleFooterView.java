@@ -29,8 +29,8 @@ public class SampleFooterView implements ISpringView {
     @Override
     public View onCreateSpringView(ViewGroup springView) {
         View footer =  LayoutInflater.from(springView.getContext()).inflate(R.layout.springcontainer_sample_footer, springView,false);
-        footerDes = (TextView) footer.findViewById(R.id.footer_description);
-        footerProgressBar = (ProgressBar)footer.findViewById(R.id.footer_progress_bar);
+        footerDes = footer.findViewById(R.id.footer_description);
+        footerProgressBar = footer.findViewById(R.id.footer_progress_bar);
         return footer;
     }
 
@@ -40,9 +40,23 @@ public class SampleFooterView implements ISpringView {
     }
 
     @Override
-    public void onStateChanged(int old, int state, Runnable after) {
+    public void onStateChanged(int old, int state, final Runnable postTransformAction) {
         currentLoadingStatus = state;
         updateFooterView();
+        if (state == SpringContainer.STATUS_BOTTOM_LINGER_FINISHED) {
+
+            footerDes.setText("HOLDING...");
+            footerDes.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    postTransformAction.run();
+                }
+            }, 2000);
+        } else {
+            postTransformAction.run();
+        }
+
+
     }
 
     @Override
