@@ -7,8 +7,8 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Movie;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.widget.ImageView;
 
 
 import com.github.daawa.lib.viewcontainer.R;
@@ -19,7 +19,7 @@ import java.io.InputStream;
  * Created by zhangzhenwei on 16/5/24.
  */
 
-public class GifView extends ImageView {
+public class GifView extends AppCompatImageView {
 
     static final int center = 0;
     static final int fit_start = 1;
@@ -172,7 +172,7 @@ public class GifView extends ImageView {
 
     }
 
-    public static interface GifListener {
+    public interface GifListener {
         /**
          * @param round the target has displayed #round times
          * @return return true to stop playback
