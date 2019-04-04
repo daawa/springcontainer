@@ -16,7 +16,7 @@ And SpringContainer does not interfere the horizontal scrolling of child views.
 
 In the following demo, a HorizontalScrollView is put in a SpringContainer. 
 
-![spring-and-support-horizontal](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springcontainer_scroll-view.gif)
+![spring-and-support-horizontal](files/springcontainer_scroll-view.gif)
 
 <br/><br/>
 As said above, it is easy to expose a **PULL-TO-REFRESH** feature.
@@ -25,30 +25,30 @@ Just define a class that implements interface `ISpringView`, and provide an obje
 
 The following demo use `SampleHeaderView` provided in the package.
  
-![top-pulling-to-refresh](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springcontainer_pull-2-refresh.gif)
+![top-pulling-to-refresh](files/springcontainer_pull-2-refresh.gif)
 
 Like a pull-to-refresh feature, it is also convenient for you to come to a **PUSH-TO-LOAD-MORE** functionality. And the way to do that is all the same, except that the customed `ISpringView` object should be set as SpringContainer's footer view.
 
 The following demo uses a `SampleFooterView` provided in the package. check the source code for more detail.
  
-![bottom-overscroll-loading](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springcontainer_load-more.gif)
+![bottom-overscroll-loading](files/springcontainer_load-more.gif)
 
 
 SpringContainer supports **multi-touch**, you can use different fingers to **continuously** pull or push.
 
-![multi-pointer-support](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springcontainer_multi-touch.gif)
+![multi-pointer-support](files/springcontainer_multi-touch.gif)
 
 
 SpringContainer also supports changing states through code.
 
 In the following demo, clicking ***refresh*** button makes SpringContainer transfer to **REFRESHING** state, and clicking ***load***, makes it transfer to **LOADING**
 
-![support-set-state](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springcontainer_set-state.gif) 
+![support-set-state](files/springcontainer_set-state.gif) 
 
 
 If you wanna implement vetical page-switching , it is also easy. All the work you should do is provide your translation animation and an `ISpringView`, and you can turn to the `PageSwitchActivity` demo in the sample code for a guide.
 
-![](https://raw.githubusercontent.com/ziv-zh/notes/master/files/springdemo_page_switch.gif)  
+![](files/springdemo_page_switch.gif)  
 
 
 <br/><br/><br/>
